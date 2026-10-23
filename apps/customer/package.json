@@ -1,0 +1,1 @@
+{"name":"@bridge/customer","private":true,"type":"module","scripts":{"dev":"vite --host 127.0.0.1","build":"tsc --noEmit && vite build"},"dependencies":{"firebase":"^12.0.0","react":"^19.0.0","react-dom":"^19.0.0"},"devDependencies":{"vite":"^6.4.0","@vitejs/plugin-react":"^4.4.0","@types/react":"^19.0.0","@types/react-dom":"^19.0.0","typescript":"^5.9.0"}}
