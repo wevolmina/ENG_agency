@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-23",
+  "customerUrl": "https://paybridge-mock.web.app",
+  "merchantUrl": "https://paybridge-mock.vercel.app",
+  "firebase": "Hosting, Firestore rules and basic Auth deployed; no Functions",
+  "vercelVerifiedCodeCommit": "2c5a5ac6d571bb97be6d4c5de5019216f79280d4",
+  "unitTests": {
+    "pass": 17,
+    "fail": 0
+  },
+  "firestoreIntegration": {
+    "pass": 1,
+    "fail": 0
+  },
+  "mysqlIntegration": {
+    "pass": 1,
+    "fail": 0
+  },
+  "liveApiChecks": {
+    "result": "PASS",
+    "checks": [
+      "anonymous_auth",
+      "unauthenticated_denied",
+      "price_tampering_denied",
+      "checkout",
+      "firestore_intake",
+      "cors",
+      "idempotent_retry",
+      "payload_conflict",
+      "receipt",
+      "other_customer_denied",
+      "merchant_claim_required",
+      "preflight"
+    ]
+  },
+  "browserReceipt": {
+    "paymentId": "pay_d391146b9a680628ce5b69a64b404fef04de04fa",
+    "amount": 24000,
+    "refreshRestoresReceipt": true
+  },
+  "apiReceipt": {
+    "paymentId": "pay_4235b3742f6b4281b18294cbf460adc3ec2234a3",
+    "amount": 12000
+  },
+  "notes": [
+    "Two mock payments retained; no real card charge.",
+    "Merchant authenticated dashboard demonstration still requires a merchant account.",
+    "Revoked token lookup returned HTTP 400 TOKEN_EXPIRED."
+  ]
+}
