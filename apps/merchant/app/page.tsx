@@ -20,7 +20,7 @@ export default function Page(){
     }catch(e){if(session.current===uid){setData(null);setError(e instanceof Error?e.message:"조회에 실패했습니다.");}}
     finally{if(session.current===uid)setBusy(false);}
   },[user]);
-  useEffect(()=>{if(user){void refresh();const timer=setInterval(()=>void refresh(),15000);return()=>clearInterval(timer);}},[refresh,user]);
+  useEffect(()=>{if(user){void refresh();const timer=setInterval(()=>{if(document.visibilityState==="visible")void refresh();},5000);return()=>clearInterval(timer);}},[refresh,user]);
   async function login(e:React.FormEvent){e.preventDefault();setBusy(true);setError("");try{await signInWithEmailAndPassword(clientAuth(),email,password);setPassword("");}catch{setError("이메일과 비밀번호를 확인해 주세요.");}finally{setBusy(false);}}
   async function logout(){session.current=null;setData(null);setBusy(false);await signOut(clientAuth());}
   const payments=data?.payments.filter(p=>`${p.product_name} ${p.payment_id}`.toLowerCase().includes(search.toLowerCase()))||[];
