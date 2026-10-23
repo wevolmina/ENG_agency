@@ -74,6 +74,76 @@ Firebase Spark, Vercel Hobby, 외부 무료 MySQL을 사용하는 개인용 데�
 - 과거 운영 API 12항목 검증 결과는 이전 보고서의 기록입니다. 새 UI 배포 후 재실행한 결과로 해석하지 않습니다.
 
 
+## 내 PC용 Docker MySQL과 브라우저 DB 관리
+
+배포된 Firebase 고객 화면과 Vercel 서버는 기존 Aiven을 사용합니다. 아래 도구는 내 PC의 개발용 MySQL과 **Adminer(DB 테이블을 브라우저에서 보는 도구)**만 실행합니다. Workbench를 열 필요가 없습니다. Docker Desktop 자체도 메모리를 사용하므로 메모리 부족이 반드시 해결되는 것은 아닙니다.
+
+### 1. 실행할 폴더부터 맞추기
+
+**Docker Desktop을 켜고 엔진 시작을 기다린 뒤**, Git Bash에서 전체 소스 폴더로 이동합니다. 고객 배포 파일만 있는 `paybridge-customer-deploy`에서는 실행할 수 없습니다.
+
+처음 받는 경우:
+
+```bash
+cd ~/Documents
+git clone https://github.com/wevolmina/paybridge-mock.git paybridge-full
+cd paybridge-full
+npm install
+node scripts/local-mysql.mjs up
+```
+
+이미 `paybridge-full`을 받은 경우:
+
+```bash
+cd ~/Documents/paybridge-full
+git pull --ff-only
+node scripts/local-mysql.mjs up
+```
+
+로컬 수정 때문에 git pull이 거절되면 파일을 강제로 지우거나 덮어쓰지 말고 변경 내용을 먼저 확인합니다. 첫 실행은 이미지 다운로드와 DB 초기화 때문에 시간이 걸립니다. 완료되면 브라우저 주소창에 **http://127.0.0.1:8081**을 입력합니다. 이 주소는 Docker를 실행한 PC에서 열립니다.
+
+### 2. Adminer 로그인과 테이블 보기
+
+| 로그인 칸 | 입력값 |
+| --- | --- |
+| 시스템 | MySQL |
+| 서버 | `mysql` (Adminer도 Docker 안에 있으므로 localhost가 아닙니다.) |
+| 사용자 이름 | `paybridge` |
+| 비밀번호 | 실행 완료 후 터미널에 표시된 로컬 비밀번호 |
+| 데이터베이스 | `payment_bridge_local` |
+
+로그인 → 테이블 목록에서 **payments / orders / order_items** 선택 → **데이터 선택(Select data)**으로 행을 봅니다. 첫 시작은 빈 테이블이 정상입니다. 운영 Aiven 데이터가 자동 복사되지는 않습니다. 비밀번호를 다시 확인하려면 다음을 실행합니다. 출력은 공개 문서에 붙여넣지 않습니다.
+
+```bash
+node scripts/local-mysql.mjs info
+```
+
+DB 사용자 `paybridge`는 로컬 DB에만 접근합니다. 판매자 화면의 Firebase 이메일 계정과는 별개입니다.
+
+### 3. 도구가 자동으로 준비하는 것
+
+- MySQL 8.4: PC 접속 주소 `127.0.0.1:3307`. 컨테이너 메모리 상한 512MB, 버퍼 풀 128MB로 설정합니다.
+- Adminer: `127.0.0.1:8081`. 컨테이너 메모리 상한 128MB입니다. Docker Desktop의 가상 머신 메모리는 별도입니다.
+- DB 이름 `payment_bridge_local`과 임의의 로컬 비밀번호를 생성하고, 새 데이터 볼륨의 첫 실행에 기존 `database/001-payments.sql`과 `002-orders.sql`을 순서대로 적용합니다.
+- 로컬 접속 정보와 Compose 설정은 Git에서 제외된 `.qa/local-mysql/`에 저장합니다. 이 폴더를 지우면 기존 볼륨의 비밀번호와 새 설정이 어긋날 수 있으므로 보관합니다.
+- 실행이 성공하면 `apps/merchant/.env.local`의 MYSQL_* 설정을 로컬 DB로 바꿉니다. 기존 파일이 있으면 최초 1회 `.env.local.before-docker`로 백업하고, Firebase 관련 설정은 유지합니다. 기존 로컬 판매자 서버는 재시작합니다.
+- 새 .env.local을 만드는 경우 Firebase 값은 비어 있습니다. Firebase 프로젝트 설정 → 일반 → 웹 앱 SDK 설정에 있는 공개 설정과 `FIREBASE_PROJECT_ID`를 채운 뒤 `npm run dev:merchant`를 실행합니다. 로컬 판매자 화면은 http://127.0.0.1:3000 입니다.
+
+현재 고객 소스의 결제 API 주소는 배포된 Vercel 주소로 고정되어 있습니다. 따라서 **고객 화면에서 결제해도 로컬 Docker DB에는 들어오지 않습니다.** 이 도구의 완료 범위는 개발용 DB·관리 화면과 로컬 판매자 서버 DB 연결입니다. 로컬 주문부터 결제까지 별도로 시험하려면 고객 API 경로와 개발 프록시도 추가로 맞춰야 합니다. Firebase Auth·Firestore는 이 도구가 로컬로 전환하지 않습니다.
+
+### 4. 확인·중지와 데이터 보존
+
+```bash
+node scripts/local-mysql.mjs status
+node scripts/local-mysql.mjs down
+```
+
+중지해도 DB 데이터 볼륨은 남습니다. 다시 시작할 때는 `up`을 사용합니다. 데이터 삭제 옵션 `-v`는 사용하지 않습니다. 포트 충돌이면 기존 3307/8081 사용 프로그램을 확인하고, MySQL이 메모리 부족으로 종료되면 Workbench 등 다른 프로그램을 닫고 Docker Desktop의 가용 메모리를 확인합니다. 필요할 때만 실행하고 작업 후 중지합니다.
+
+검증: 실행 파일 문법·도움말과 기존 단위 테스트 17건을 확인했습니다. 작업 환경에 Docker 엔진이 없어 실제 컨테이너 시작·초기 SQL 적용·Adminer 로그인은 아직 실행 검증하지 못했습니다.
+
+공식 참고: [Docker MySQL 이미지](https://hub.docker.com/_/mysql/) · [Adminer 이미지](https://hub.docker.com/_/adminer/)
+
 ## MySQL과 Firebase DB 확인
 
 ### Firestore: Firebase 콘솔에서 주문 요청 보기
@@ -222,15 +292,29 @@ LIMIT 10;
 
 ## 판매자 테스트 계정과 권한
 
-현재 이 작업에서 생성·전달한 판매자 테스트 이메일과 비밀번호는 없습니다. 기존 보고서에서도 판매자 계정·권한 준비가 남은 항목으로 기록되어 있습니다. Firebase Authentication의 실제 계정 목록은 이 문서 작성 중 별도로 열람하지 않았으므로, 이미 다른 작업에서 만든 계정이 있는지는 콘솔에서 확인해야 합니다.
+2026-10-23 Firebase Authentication 사용자 목록에서 기존 이메일 계정 1개를 확인했습니다. 이 작업에서 새 계정을 만들거나 판매자 클레임을 등록한 것은 아닙니다. 계정 이메일·비밀번호는 공개 README에 싣지 않습니다. 이메일 계정의 존재만으로 판매자 권한이 있다고 판단할 수 없습니다. Google Cloud Shell은 현재 작업 브라우저에서 Site Unavailable로 열리지 않아 권한 등록을 완료하지 못했습니다.
 
 | 항목 | 현재 안내 |
 | --- | --- |
-| 로그인 이메일 | 확인·전달된 테스트 이메일 없음 |
+| 로그인 이메일 | Firebase Authentication에서 기존 이메일 계정 확인. 실제 이메일은 콘솔에서 확인 |
 | 비밀번호 | 공개 README에 기록하지 않음. 생성 시 정한 값을 별도로 관리 |
 | 판매자 권한 | merchant_id=studio-mina |
 | studio-mina의 의미 | 로그인 아이디가 아니라 이 스토어의 매출을 조회할 권한 값 |
 | 일반 이메일 계정만 있는 경우 | 로그인은 가능해도 판매자 권한이 없으면 매출 조회가 거절됨 |
+
+### Missing script 오류와 관리자 인증 준비
+
+`npm error Missing script: "merchant:grant"`는 현재 폴더의 package.json에 명령이 없다는 뜻입니다. 위 Docker 안내처럼 전체 소스의 **paybridge-full 루트**로 이동하고 최신 코드를 받은 뒤 `npm run`으로 명령 목록을 확인합니다. 바로 실행할 파일은 `scripts/grant-merchant.mjs`입니다.
+
+권한 등록에는 Firebase 관리자 인증이 필요합니다. `firebase login`만으로 준비되는 것은 아닙니다. 이미 승인된 서비스 계정 키 파일이 있다면, Git Bash에서 경로를 지정한 뒤 아래 명령을 실행합니다.
+
+```bash
+# 실제 보관 경로와 실제 UID로 바꿉니다.
+export GOOGLE_APPLICATION_CREDENTIALS="C:/본인_보관_폴더/firebase-admin.json"
+FIREBASE_PROJECT_ID=paybridge-mock node scripts/grant-merchant.mjs "실제_UID" studio-mina
+```
+
+키가 없다면 프로젝트 소유자가 Firebase 프로젝트 설정 → 서비스 계정 → Firebase Admin SDK에서 관리자 인증을 준비해야 합니다. 새 비공개 키를 발급하면 본인 PC의 저장소 밖에 보관하고 위 경로로 지정합니다. 키 내용은 채팅·GitHub·README에 붙여넣지 않습니다. 이 권한 등록은 판매자 매출 접근 권한을 부여합니다. 명령 실행 전 본인이 관리하는 테스트 계정 UID인지 확인합니다. 완료 후 판매자 화면에서 로그아웃하고 다시 로그인합니다.
 
 ### 준비 순서
 
