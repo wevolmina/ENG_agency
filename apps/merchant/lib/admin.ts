@@ -1,6 +1,7 @@
 import {cert, getApps, initializeApp} from "firebase-admin/app";
 import {getAuth} from "firebase-admin/auth";
 import {merchantFromClaims} from "../../../functions/src/domain";
+import {accountIsActive} from "./session";
 
 export function adminAuth() {
   const projectId=process.env.FIREBASE_PROJECT_ID;
@@ -19,7 +20,7 @@ export async function authorizedUser(request: Request) {
     const response=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${encodeURIComponent(key)}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({idToken:token}),cache:"no-store",signal:AbortSignal.timeout(10000)});
     if(!response.ok)return null;
     const user=(await response.json()).users?.[0];
-    if(!user||user.localId!==claims.uid||user.disabled===true||!/^\d+$/.test(user.validSince)||Number(user.validSince)>claims.auth_time)return null;
+    if(!accountIsActive(user,claims))return null;
     return {uid:claims.uid,claims,token};
   }
   catch {return null;}
