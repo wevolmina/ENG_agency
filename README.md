@@ -4,6 +4,7 @@ Firestore는 주문 요청을 접수하고 MySQL은 확정 주문·항목·결�
 
 - 고객 화면: https://paybridge-mock.web.app
 - 판매자 화면: https://paybridge-mock.vercel.app
+- [MySQL DB 관리 콘솔 바로가기 (Aiven)](https://console.aiven.io/) — 로그인 후 사용 중인 MySQL 서비스를 선택합니다.
 - [구현 보고서와 소스 링크](docs/IMPLEMENTATION-REPORT.md)
 - [클릭형 소스 설명](docs/IMPLEMENTATION-REPORT.html): 내려받아 브라우저에서 열기
 
@@ -57,6 +58,7 @@ Firebase Spark, Vercel Hobby, 외부 무료 MySQL을 사용하는 개인용 데�
 | --- | --- | --- |
 | 고객 스토어 | [고객 화면](https://paybridge-mock.web.app/) | 상품 선택·수량·동의·모의 결제·영수증 |
 | 판매자 센터 | [판매자 화면](https://paybridge-mock.vercel.app/) | 판매자 로그인·매출 카드·차트·거래 목록 |
+| MySQL DB 관리 | [Aiven 콘솔 바로가기](https://console.aiven.io/) | 로그인 → 조직·프로젝트 → MySQL 서비스 → Overview |
 | 개발자 영상 | [영상 촬영 시나리오](docs/VIDEO-SCENARIOS.md) | 약 7분: 호스팅·DB 역할, 설계 변경, 트랜잭션·재시도 |
 | 의뢰인 영상 | [영상 촬영 시나리오](docs/VIDEO-SCENARIOS.md) | 약 4분: 상품 선택 → 24,000원 모의 결제 → 영수증·판매자 매출 |
 
