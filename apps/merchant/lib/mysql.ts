@@ -12,6 +12,8 @@ export function getPool() {
     ssl:process.env.MYSQL_TLS==="false"?undefined:{rejectUnauthorized:true,ca},
     timezone:"Z",dateStrings:true,decimalNumbers:true,waitForConnections:true,
     connectionLimit:3,maxIdle:1,idleTimeout:10000,queueLimit:20,connectTimeout:10000});
-  attachDatabasePool(pool);
+  // Vercel's connection lifecycle adapter requires mysql2's core pool.
+  // The promise wrapper hides the constructor used to identify the driver.
+  attachDatabasePool(pool.pool);
   return pool;
 }
