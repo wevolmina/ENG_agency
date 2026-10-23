@@ -4,7 +4,7 @@ Firestore는 주문 요청을 접수하고 MySQL은 확정 주문·항목·결�
 
 - 고객 화면: https://paybridge-mock.web.app
 - 판매자 화면: https://paybridge-mock.vercel.app
-- [MySQL DB 관리 콘솔 바로가기 (Aiven)](https://console.aiven.io/) — 로그인 후 사용 중인 MySQL 서비스를 선택합니다.
+- [MySQL Workbench Community 무료 다운로드](https://dev.mysql.com/downloads/workbench/) — 설치·DB 연결 후 MySQL 테이블을 확인합니다.
 - [구현 보고서와 소스 링크](docs/IMPLEMENTATION-REPORT.md)
 - [클릭형 소스 설명](docs/IMPLEMENTATION-REPORT.html): 내려받아 브라우저에서 열기
 
@@ -58,7 +58,7 @@ Firebase Spark, Vercel Hobby, 외부 무료 MySQL을 사용하는 개인용 데�
 | --- | --- | --- |
 | 고객 스토어 | [고객 화면](https://paybridge-mock.web.app/) | 상품 선택·수량·동의·모의 결제·영수증 |
 | 판매자 센터 | [판매자 화면](https://paybridge-mock.vercel.app/) | 판매자 로그인·매출 카드·차트·거래 목록 |
-| MySQL DB 관리 | [Aiven 콘솔 바로가기](https://console.aiven.io/) | 로그인 → 조직·프로젝트 → MySQL 서비스 → Overview |
+| MySQL 테이블 조회 | [MySQL Workbench 무료 다운로드](https://dev.mysql.com/downloads/workbench/) | 설치 → Aiven DB 연결 → SCHEMAS → Tables → 행 조회 |
 | 개발자 영상 | [영상 촬영 시나리오](docs/VIDEO-SCENARIOS.md) | 약 7분: 호스팅·DB 역할, 설계 변경, 트랜잭션·재시도 |
 | 의뢰인 영상 | [영상 촬영 시나리오](docs/VIDEO-SCENARIOS.md) | 약 4분: 상품 선택 → 24,000원 모의 결제 → 영수증·판매자 매출 |
 
@@ -88,15 +88,22 @@ Firebase Spark, Vercel Hobby, 외부 무료 MySQL을 사용하는 개인용 데�
 
 현재 결제 생성 소스에서 Firestore 문서 ID는 orderId입니다. 고객 영수증의 paymentId와 같은 이름의 문서를 찾는 방식은 아닙니다. MySQL payments 행의 order_id를 확인하면 Firestore 문서와 연결해 볼 수 있습니다.
 
-### MySQL: Aiven 연결 정보를 이용해 조회 도구에서 보기
+### MySQL: 무료 MySQL Workbench로 연결해서 테이블 보기
 
-앞선 구성 기록의 MySQL 제공자는 Aiven입니다. 실제 서비스 이름과 DB 이름은 계정 화면에서 확인해야 합니다. Vercel은 서버와 판매자 화면을 실행하는 곳이며, MySQL DB 자체는 외부 서비스에 있습니다.
+[MySQL Workbench Community 공식 다운로드](https://dev.mysql.com/downloads/workbench/)에서 Windows용 설치 파일을 받아 설치합니다. Community 버전은 무료 DB 접속·조회 도구입니다. 이 링크는 프로그램 다운로드 페이지이며, 설치 후 기존 MySQL 서버에 연결해야 테이블을 볼 수 있습니다. 외부 Aiven DB를 조회하는 용도라면 로컬 MySQL Server를 새로 설치할 필요는 없습니다.
 
-1. [Aiven 콘솔](https://console.aiven.io/)에 로그인합니다.
-2. 조직 → 프로젝트 → 사용 중인 MySQL 서비스를 선택합니다.
-3. Overview → Connection information에서 Host, Port, User, Database를 확인합니다. Password와 CA 인증서도 연결에 사용합니다.
-4. MySQL Workbench 또는 DBeaver에서 해당 정보로 연결합니다. SSL/TLS와 CA 인증서 검증은 유지합니다.
-5. 앱이 사용하는 DB를 선택한 뒤 orders, order_items, payments 테이블을 조회합니다. DB 이름을 임의로 payment_bridge 또는 defaultdb라고 단정하지 말고 실제 MYSQL_DATABASE 설정과 맞춥니다.
+앞선 구성 기록의 MySQL 제공자는 Aiven입니다. Workbench 사용료와 기존 Aiven DB 서비스의 요금·무료 플랜 한도는 별개입니다. 실제 서비스 이름과 DB 이름은 계정 화면에서 확인해야 합니다. Vercel은 서버와 판매자 화면을 실행하는 곳이며, MySQL DB 자체는 외부 서비스에 있습니다.
+
+1. [Aiven 콘솔](https://console.aiven.io/)에서 조직 → 프로젝트 → 사용 중인 MySQL 서비스 → Overview → Connection information을 엽니다. 이 콘솔은 DB 접속 정보를 확인하는 용도로 사용합니다.
+2. Host, Port, User, Password를 확인하고 CA 인증서를 내려받습니다. 앱이 사용하는 DB 이름은 실제 서버 환경 변수 `MYSQL_DATABASE`와 맞춥니다. DB 이름이나 포트를 임의로 추측하지 않습니다.
+3. MySQL Workbench를 실행하고 홈의 **MySQL Connections 옆 +**를 누릅니다. Connection Name은 `Paybridge`처럼 알아보기 쉽게 정하고, Connection Method는 **Standard (TCP/IP)**를 선택합니다.
+4. Hostname, Port, Username에 Aiven의 값을 입력합니다. 비밀번호는 연결 시 본인 PC의 Workbench에 직접 입력합니다.
+5. **SSL** 탭에서 Aiven CA 인증서를 **SSL CA File**로 지정하고 인증서 검증을 사용합니다. **Verify Identity**로 서버 이름까지 검증하며, SSL이나 인증서 검증을 끄지 않습니다. 자세한 항목은 아래 Aiven 공식 연결 안내를 참고합니다.
+6. **Test Connection**으로 접속을 확인한 뒤 저장한 연결을 엽니다. 연결 실패 시 서비스 상태와 호스트·포트·사용자·비밀번호·CA 설정을 확인합니다.
+7. 왼쪽 **SCHEMAS**에서 앱이 사용하는 DB를 펼치고 **Tables**를 엽니다. 목록이 보이지 않으면 새로고침합니다.
+8. `orders`, `order_items`, `payments` 중 원하는 테이블을 우클릭한 뒤 **Select Rows - Limit 1000**을 선택하면 행을 볼 수 있습니다. 테이블 구조는 펼친 **Columns**에서 확인합니다.
+
+이 안내는 접속·조회 방법입니다. 이번 문서 수정에서 실제 Workbench 연결을 실행한 것은 아닙니다.
 
 | 테이블 | 저장하는 내용 | 촬영에서 보여줄 부분 |
 | --- | --- | --- |
@@ -117,6 +124,7 @@ Firebase Spark, Vercel Hobby, 외부 무료 MySQL을 사용하는 개인용 데�
 공식 안내:
 
 - [Firebase 콘솔에서 Firestore 관리](https://firebase.google.com/docs/firestore/using-console?hl=ko)
+- [MySQL Workbench Community 무료 다운로드](https://dev.mysql.com/downloads/workbench/)
 - [Aiven MySQL과 MySQL Workbench 연결](https://aiven.io/docs/products/mysql/howto/connect-from-mysql-workbench)
 - [Aiven MySQL과 DBeaver 연결](https://aiven.io/docs/products/mysql/howto/connect-with-dbeaver)
 
