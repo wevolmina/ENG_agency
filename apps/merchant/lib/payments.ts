@@ -20,7 +20,7 @@ export async function persistPayment(pool:Pool, p:Payment) {
 }
 export async function merchantPayments(pool:Pool,merchantId:string) {
   const [totals]=await pool.execute<RowDataPacket[]>("SELECT COUNT(*) AS count, COALESCE(SUM(amount),0) AS revenue, COALESCE(AVG(amount),0) AS average FROM payments WHERE merchant_id=? AND status='MOCK_APPROVED'",[merchantId]);
-  const [daily]=await pool.execute<RowDataPacket[]>("SELECT DATE(DATE_ADD(created_at,INTERVAL 9 HOUR)) AS day,SUM(amount) AS revenue,COUNT(*) AS count FROM payments WHERE merchant_id=? AND status='MOCK_APPROVED' AND created_at>=UTC_DATE()-INTERVAL 29 DAY GROUP BY day ORDER BY day",[merchantId]);
+  const [daily]=await pool.execute<RowDataPacket[]>("SELECT DATE(DATE_ADD(created_at,INTERVAL 9 HOUR)) AS day,SUM(amount) AS revenue,COUNT(*) AS count FROM payments WHERE merchant_id=? AND status='MOCK_APPROVED' AND created_at>=DATE(DATE_ADD(UTC_TIMESTAMP(),INTERVAL 9 HOUR))-INTERVAL 29 DAY-INTERVAL 9 HOUR GROUP BY day ORDER BY day",[merchantId]);
   const [payments]=await pool.execute<RowDataPacket[]>("SELECT payment_id,order_id,product_name,quantity,amount,status,created_at,synced_at FROM payments WHERE merchant_id=? ORDER BY created_at DESC,payment_id DESC LIMIT 100",[merchantId]);
   return {merchantId,totals:totals[0],daily,payments,asOf:new Date().toISOString()};
 }
