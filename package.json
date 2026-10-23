@@ -1,9 +1,13 @@
 {
   "name": "payment-bridge",
   "private": true,
-  "workspaces": ["apps/customer", "apps/merchant", "functions"],
+  "workspaces": [
+    "apps/customer",
+    "apps/merchant",
+    "functions"
+  ],
   "scripts": {
-    "build": "npm run build --workspace functions && npm run build --workspace @bridge/customer && npm run build --workspace @bridge/merchant",
+    "build": "npm run build --workspace @bridge/customer && npm run build --workspace @bridge/merchant",
     "test": "tsx --test tests/*.test.ts",
     "test:integration": "tsx --test tests/integration/*.test.ts",
     "dev:customer": "npm run dev --workspace @bridge/customer",
@@ -11,9 +15,16 @@
     "db:migrate": "node scripts/migrate.mjs",
     "merchant:grant": "node scripts/grant-merchant.mjs",
     "check:deploy": "node scripts/check-deploy.mjs",
-    "deploy:firebase": "npx firebase-tools deploy --only hosting,functions,firestore",
+    "deploy:firebase": "npx firebase-tools deploy --only hosting,firestore,auth",
     "deploy:vercel": "npx vercel --prod"
   },
-  "devDependencies": {"tsx": "^4.20.0", "typescript": "^5.9.0", "@types/node": "^22.0.0", "@firebase/rules-unit-testing": "^5.0.0"},
-  "engines": {"node": ">=22 <23"}
+  "devDependencies": {
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "@types/node": "^22.0.0",
+    "@firebase/rules-unit-testing": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=22 <23"
+  }
 }
