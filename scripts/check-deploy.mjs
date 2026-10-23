@@ -4,8 +4,7 @@ const root=resolve(import.meta.dirname,"..");
 const checks=[];
 for(const [name,path,keys] of [
   ["고객 Firebase 설정","apps/customer/.env.local",["VITE_FIREBASE_API_KEY","VITE_FIREBASE_AUTH_DOMAIN","VITE_FIREBASE_PROJECT_ID","VITE_FIREBASE_APP_ID"]],
-  ["판매자 서버 설정","apps/merchant/.env.local",["NEXT_PUBLIC_FIREBASE_API_KEY","NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN","NEXT_PUBLIC_FIREBASE_PROJECT_ID","NEXT_PUBLIC_FIREBASE_APP_ID","FIREBASE_PROJECT_ID","FIREBASE_CLIENT_EMAIL","FIREBASE_PRIVATE_KEY","MYSQL_HOST","MYSQL_USER","MYSQL_PASSWORD","MYSQL_DATABASE","SYNC_SHARED_SECRET"]],
-  ["Firebase 동기화 URL","functions/.env",["SYNC_API_URL"]]
+  ["판매자 서버 설정","apps/merchant/.env.local",["NEXT_PUBLIC_FIREBASE_API_KEY","NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN","NEXT_PUBLIC_FIREBASE_PROJECT_ID","NEXT_PUBLIC_FIREBASE_APP_ID","FIREBASE_PROJECT_ID","MYSQL_HOST","MYSQL_USER","MYSQL_PASSWORD","MYSQL_DATABASE"]]
 ]){
   const file=resolve(root,path);const values=existsSync(file)?Object.fromEntries(readFileSync(file,"utf8").split(/\r?\n/).filter(l=>l&&!l.startsWith("#")).map(l=>{const i=l.indexOf("=");return [l.slice(0,i),l.slice(i+1).trim()];})):{};
   const missing=keys.filter(k=>!values[k]);checks.push({check:name,status:missing.length?"미설정":"설정됨",missing});
