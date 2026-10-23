@@ -41,7 +41,29 @@ if (command === 'up') {
     adminer: {image: 'adminer:5', restart: 'no', mem_limit: '128m', ports: ['127.0.0.1:8081:8080'], environment: {ADMINER_DEFAULT_SERVER: 'mysql'}, depends_on: {mysql: {condition: 'service_healthy'}}}
   }, volumes: {'mysql-data': {}}};
   // Compose interpolates $; $$ preserves the container's environment references.
-  compose.services.mysql.healthcheck.test[1] = compose.services.mysql.healthcheck.test[1].replaceAll('$', '$$');
+  compose.services.mysql.healthcheck.test[1] = compose.services.mysql.healthcheck.test[1].replaceAll(';
+  await writeFile(composePath, JSON.stringify(compose, null, 2), {mode: 0o600});
+}
+if (command !== 'info') {
+  const actions = {up: ['up', '-d', '--wait', '--wait-timeout', '240'], down: ['down'], status: ['ps']};
+  const result = docker(['compose', '-f', composePath, ...actions[command]]);
+  if (result.status !== 0) {console.error('Docker 실행에 실패했습니다. Docker Desktop과 포트 3307/8081을 확인하세요.'); process.exit(1);}
+}
+if (command === 'up') {
+  const appEnv = path.join(root, 'apps/merchant/.env.local');
+  const backup = path.join(root, 'apps/merchant/.env.local.before-docker');
+  const existing = await exists(appEnv) ? await readFile(appEnv, 'utf8') : await readFile(path.join(root, 'apps/merchant/.env.local.example'), 'utf8');
+  if (await exists(appEnv) && !(await exists(backup))) await writeFile(backup, existing, {mode: 0o600, flag: 'wx'});
+  const values = {MYSQL_HOST: '127.0.0.1', MYSQL_PORT: '3307', MYSQL_USER: 'paybridge', MYSQL_PASSWORD: secrets.password, MYSQL_DATABASE: 'payment_bridge_local', MYSQL_TLS: 'false', MYSQL_CA_BASE64: ''};
+  let updated = existing.replace(/^(?:export\s+)?MYSQL_(?:HOST|PORT|USER|PASSWORD|DATABASE|TLS|CA_BASE64)\s*=.*\r?\n?/gm, '');
+  updated = updated.trimEnd() + '\n\n# Local Docker MySQL\n' + Object.entries(values).map(([key, value]) => `${key}=${value}`).join('\n') + '\n';
+  await writeFile(appEnv, updated, {mode: 0o600});
+  console.log('로컬 DB 설정을 저장했습니다: apps/merchant/.env.local');
+}
+if (command === 'up' || command === 'info') {
+  console.log(`\n로컬 DB 관리 화면: http://127.0.0.1:8081\n시스템: MySQL\n서버: mysql\n사용자: paybridge\n비밀번호: ${secrets.password}\n데이터베이스: payment_bridge_local\n\nPC 프로그램 연결: 127.0.0.1:3307\n운영 Aiven 데이터는 복사되지 않습니다. 로컬 DB는 처음에 빈 테이블입니다.\n로컬 판매자 실행: npm run dev:merchant\nFirebase 설정이 비어 있으면 기존 프로젝트 설정을 먼저 채우세요.\n종료: node scripts/local-mysql.mjs down (데이터 보존)`);
+}
+, () => '$');
   await writeFile(composePath, JSON.stringify(compose, null, 2), {mode: 0o600});
 }
 if (command !== 'info') {
