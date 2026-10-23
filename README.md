@@ -94,16 +94,106 @@ Firebase Spark, Vercel Hobby, 외부 무료 MySQL을 사용하는 개인용 데�
 
 앞선 구성 기록의 MySQL 제공자는 Aiven입니다. Workbench 사용료와 기존 Aiven DB 서비스의 요금·무료 플랜 한도는 별개입니다. 실제 서비스 이름과 DB 이름은 계정 화면에서 확인해야 합니다. Vercel은 서버와 판매자 화면을 실행하는 곳이며, MySQL DB 자체는 외부 서비스에 있습니다.
 
-1. [Aiven 콘솔](https://console.aiven.io/)에서 조직 → 프로젝트 → 사용 중인 MySQL 서비스 → Overview → Connection information을 엽니다. 이 콘솔은 DB 접속 정보를 확인하는 용도로 사용합니다.
-2. Host, Port, User, Password를 확인하고 CA 인증서를 내려받습니다. 앱이 사용하는 DB 이름은 실제 서버 환경 변수 `MYSQL_DATABASE`와 맞춥니다. DB 이름이나 포트를 임의로 추측하지 않습니다.
-3. MySQL Workbench를 실행하고 홈의 **MySQL Connections 옆 +**를 누릅니다. Connection Name은 `Paybridge`처럼 알아보기 쉽게 정하고, Connection Method는 **Standard (TCP/IP)**를 선택합니다.
-4. Hostname, Port, Username에 Aiven의 값을 입력합니다. 비밀번호는 연결 시 본인 PC의 Workbench에 직접 입력합니다.
-5. **SSL** 탭에서 Aiven CA 인증서를 **SSL CA File**로 지정하고 인증서 검증을 사용합니다. **Verify Identity**로 서버 이름까지 검증하며, SSL이나 인증서 검증을 끄지 않습니다. 자세한 항목은 아래 Aiven 공식 연결 안내를 참고합니다.
-6. **Test Connection**으로 접속을 확인한 뒤 저장한 연결을 엽니다. 연결 실패 시 서비스 상태와 호스트·포트·사용자·비밀번호·CA 설정을 확인합니다.
-7. 왼쪽 **SCHEMAS**에서 앱이 사용하는 DB를 펼치고 **Tables**를 엽니다. 목록이 보이지 않으면 새로고침합니다.
-8. `orders`, `order_items`, `payments` 중 원하는 테이블을 우클릭한 뒤 **Select Rows - Limit 1000**을 선택하면 행을 볼 수 있습니다. 테이블 구조는 펼친 **Columns**에서 확인합니다.
+#### 지금 올린 화면에서 시작하기
 
-이 안내는 접속·조회 방법입니다. 이번 문서 수정에서 실제 Workbench 연결을 실행한 것은 아닙니다.
+2026-10-23에 공유한 화면의 창 제목은 **Database Connection Configuration**입니다. 아래 안내는 그 화면에 실제로 보이는 이름을 기준으로 작성했습니다. 기존 안내의 Connection Name은 이 화면의 **Caption**, SSL 탭은 **TLS**, SSL CA File은 **CA Certificate Path**에 해당합니다. Connection Method에 이미 표시된 **mysql**을 사용합니다.
+
+현재 사진에서 Caption·User Name·Host·Port는 입력되어 있지만, **TLS Mode는 Preferred이고 CA Certificate Path는 비어 있습니다.** 먼저 아래 1단계에서 인증서 파일을 준비하고 3단계에서 지정합니다. 사진만으로 Host 전체, 비밀번호, 실제 DB 이름, 연결 성공 여부는 확인할 수 없습니다.
+
+#### 1단계. Aiven에서 값과 인증서 준비하기
+
+1. [Aiven 콘솔](https://console.aiven.io/)을 열고 사용 중인 MySQL 서비스를 선택합니다.
+2. **Overview → Connection information**에서 **Host, Port, User, Password**를 확인합니다. Workbench에 입력할 값은 이 서비스의 값입니다. Firebase·Google·판매자 로그인 비밀번호와 다릅니다.
+3. 서비스 화면의 **CA certificate** 다운로드 항목에서 인증서 파일을 PC에 저장합니다. 내려받은 파일은 보통 `ca.pem` 같은 이름입니다. 이 파일은 연결 상대가 맞는 서버인지 확인하는 데 사용합니다. 다운로드 위치는 화면 구성에 따라 다를 수 있으므로 [Aiven 공식 연결 안내](https://aiven.io/docs/products/mysql/howto/connect-from-mysql-workbench)를 함께 확인합니다.
+4. DB 이름은 앱 서버의 `MYSQL_DATABASE` 설정과 맞춥니다. 지금 모르겠다면 Workbench의 **Default Schema는 우선 비워도 됩니다.** 연결 후 목록에서 실제 DB를 찾을 수 있습니다.
+
+#### 2단계. 첫 번째 사진: 기본값과 Authentication 입력하기
+
+위에서 아래로 다음 표와 맞춥니다. 이미 입력한 칸은 Aiven의 값과 같은지만 확인합니다.
+
+| 화면에 보이는 이름 | 쉬운 뜻 | 입력하거나 선택할 값 |
+| --- | --- | --- |
+| Caption | 내 PC에서 구분할 연결 별명 | `Paybridge`. DB 이름을 만드는 칸이 아닙니다. |
+| Description / Tags | 설명 / 분류 표시 | 기본값을 두거나 비워도 됩니다. |
+| Connection Method | 연결할 DB 종류 | 사진에 표시된 `mysql` 유지 |
+| User Name | DB 사용자 이름 | Aiven의 User. 사진에는 `avnadmin`이 보이지만 실제 서비스 값과 확인합니다. |
+| Host Name or IP Address | DB 서버 주소 | Aiven의 Host 전체를 복사합니다. `https://`나 비밀번호가 포함된 접속 URI 전체를 넣지 않습니다. |
+| Port | 서버 접속 번호 | Aiven의 Port 숫자 그대로 입력합니다. 기본값 3306으로 바꾸지 않습니다. |
+| Default Schema | 처음 열 DB 이름 | 실제 `MYSQL_DATABASE` 값. 모르면 지금은 빈칸 유지 |
+| Authentication → Factor 1 | 첫 번째 로그인 방법 | 사진처럼 `password` 유지 |
+| Authentication → Factor 2 / Factor 3 | 추가 로그인 방법 | Aiven에서 별도로 요구하지 않았다면 사진처럼 `None` 유지 |
+
+**Store Password는 지금 누르지 않아도 됩니다.** 사진의 “Password will be prompted”는 연결할 때 비밀번호를 물어본다는 뜻입니다. 아래 Test Connection에서 비밀번호 입력 창이 나오면 Aiven DB 비밀번호를 직접 입력합니다. 계정 식별값이나 비밀번호를 README에 적을 필요는 없습니다.
+
+#### 3단계. 두 번째 사진: TLS 설정하기
+
+**Authentication 오른쪽의 TLS 탭**을 누릅니다. TLS는 **Transport Layer Security**, 즉 PC와 DB 사이의 통신을 암호화하고 서버를 확인하는 보안 방식입니다.
+
+| 화면에 보이는 이름 | 무엇을 해야 하나요? |
+| --- | --- |
+| TLS Mode | 현재 `Preferred`인 드롭다운을 엽니다. 서버 인증서와 호스트 이름을 검증하는 `Verify Identity` / `VERIFY_IDENTITY` / `Require and Verify Identity`에 해당하는 항목을 선택합니다. 정확한 표기는 버전에 따라 다릅니다. 첨부 사진에는 펼친 목록이 없어 선택지의 실제 이름은 확인하지 못했습니다. |
+| CA Certificate Path | 이 칸 오른쪽의 **… 버튼**을 누르고, 1단계에서 내려받은 Aiven CA 인증서 파일을 선택합니다. 예: 다운로드 폴더의 `ca.pem`. 서버 주소나 비밀번호를 쓰는 칸이 아닙니다. |
+| Client Certificate Path | Aiven에서 별도 클라이언트 인증서를 요구하지 않았다면 비워 둡니다. CA 파일을 이 칸에 넣지 않습니다. |
+| Client Key Path | 별도 클라이언트 개인 키를 사용하는 구성이 아니라면 비워 둡니다. |
+| Permitted ciphers | 암호화 알고리즘 제한 설정입니다. 지금은 비워 둡니다. |
+| Post-Quantum Cryptography 영역 | 추가 암호화 설정입니다. 사진의 기본값을 유지하며 두 체크박스를 새로 켜지 않습니다. |
+
+`Preferred`는 서버 신원 검증을 보장하는 선택이 아닙니다. 검증 항목이 보이지 않으면 임의로 Disabled로 바꾸지 말고 프로그램의 버전과 해당 목록을 확인합니다. 기존 Workbench 8 화면이라면 **SSL → Use SSL: Require and Verify Identity → SSL CA File**이 같은 목적의 설정입니다.
+
+#### 4단계. 연결 시험하고 저장하기
+
+1. 창 **왼쪽 아래 Test Connection**을 누릅니다.
+2. 비밀번호 창이 나오면 **Aiven DB 비밀번호**를 입력하고 확인합니다. Google이나 판매자 계정 비밀번호를 넣지 않습니다.
+3. 연결 성공 메시지가 나오면 그 메시지를 닫습니다. **Test Connection은 접속 가능 여부를 시험하는 버튼**입니다.
+4. 연결 설정 창 **오른쪽 아래 OK**를 눌러 연결을 저장합니다.
+5. 홈의 **Database Connections** 또는 왼쪽 **CONNECTIONS**에 생긴 **Paybridge** 연결을 엽니다. 두 번 클릭해야 열리는 화면도 있습니다.
+
+#### 5단계. 접속 후 테이블과 행 보기
+
+아래는 연결이 성공한 다음 순서입니다. 아직 접속 후 화면은 공유되지 않았으므로 메뉴 이름은 버전에 따라 다를 수 있습니다.
+
+1. 연결을 열고 SQL 편집기 화면으로 들어갑니다. 왼쪽 DB 목록에서 앱이 사용하는 DB를 찾습니다. Workbench 8에서는 **SCHEMAS** 탭입니다. Schema(스키마)는 여기서는 테이블을 담은 DB 묶음으로 이해하면 됩니다.
+2. DB 이름 왼쪽의 펼침 표시 → **Tables**를 엽니다. 목록이 비어 보이면 새로고침하고, 실제 `MYSQL_DATABASE` 값과 같은 DB인지 확인합니다.
+3. **payments**를 우클릭 → **Select Rows - Limit 1000**을 누르면 저장된 결제 행을 표로 볼 수 있습니다. 같은 방식으로 **orders**, **order_items**도 확인합니다. 메뉴가 다르면 아래 SQL 방법을 사용합니다.
+4. 테이블의 **Columns**를 펼치면 열 이름과 구조를 확인할 수 있습니다. 데이터 표를 열었을 때 0행이면 연결 실패와는 다릅니다. 해당 DB나 테이블에 아직 기록이 없을 수 있습니다.
+
+DB 목록이나 테이블 메뉴를 찾기 어렵다면 SQL 편집기의 새 쿼리 탭에서 다음을 **한 문장씩 선택하여 실행**합니다. Workbench 8에서는 선택한 SQL 실행 단축키가 **Ctrl+Enter**입니다. 다른 버전에서는 실행 버튼 또는 실행 메뉴를 사용합니다.
+
+```sql
+-- 1. 현재 계정에서 볼 수 있는 DB 목록
+SHOW DATABASES;
+
+-- 2. 아래 이름을 실제 MYSQL_DATABASE 값으로 바꾼 뒤 실행
+USE `실제_DB_이름`;
+
+-- 3. 선택한 DB의 테이블 목록
+SHOW TABLES;
+
+-- 4. 열 이름과 자료형 확인
+DESCRIBE payments;
+
+-- 5. 최근 결제 10건 확인
+SELECT payment_id, order_id, amount, status, created_at
+FROM payments
+ORDER BY created_at DESC
+LIMIT 10;
+```
+
+`실제_DB_이름`은 예시 자리표시자입니다. 이 글자 그대로 실행하지 않습니다. DB 이름을 모르면 1번 결과와 서버의 `MYSQL_DATABASE` 값을 비교한 뒤 2번을 실행합니다. `USE`는 이번 쿼리 창에서 사용할 DB를 고를 뿐, 데이터를 변경하지 않습니다.
+
+#### 막혔을 때 확인하기
+
+| 보이는 메시지·상태 | 먼저 확인할 것 |
+| --- | --- |
+| 비밀번호를 입력하라고 나옴 | 연결 과정의 정상적인 요청일 수 있습니다. Aiven DB 비밀번호를 입력합니다. |
+| Access denied | DB User와 Password를 다시 확인합니다. 판매자 로그인 정보와 구분합니다. |
+| Can't connect / timeout | Aiven 서비스 실행 상태, Host 전체, Port, 네트워크·서비스 접근 제한을 확인합니다. |
+| Certificate / TLS / SSL 오류 | 해당 Aiven 서비스의 CA 파일과 Host를 확인합니다. 인증서 파일이 PC에서 이동·삭제되지 않았는지도 확인합니다. |
+| Unknown database | Default Schema 또는 USE의 DB 이름을 실제 MYSQL_DATABASE 값과 맞춥니다. 모르면 Default Schema를 비우고 연결합니다. |
+| No database selected | 먼저 실제 DB를 선택하거나 USE 문을 실행합니다. |
+| 테이블이 없거나 목록이 다름 | 다른 DB를 선택했는지, 현재 사용자에게 조회 권한이 있는지 확인합니다. 조회만 하려는 상황에서 마이그레이션을 다시 실행하지 않습니다. |
+
+이 안내는 첨부한 두 설정 화면과 공식 연결 문서를 기준으로 작성했습니다. 이번 README 수정에서 사용자의 PC에 접속하거나 실제 DB 연결을 시험한 것은 아닙니다.
 
 | 테이블 | 저장하는 내용 | 촬영에서 보여줄 부분 |
 | --- | --- | --- |
