@@ -1,0 +1,86 @@
+{
+  "checkedAt": "2026-10-24T09:31:47.179122+00:00",
+  "db": {
+    "checkedAt": "2026-10-24T09:29:47.831Z",
+    "payment": {
+      "payment_id": "pay_9b2c8e4b593e5ecf84dd45becae41982e30571dd",
+      "order_id": "ord_9b2c8e4b593e5ecf84dd45becae41982e30571dd",
+      "product_name": "공간 패키지 3종",
+      "quantity": 3,
+      "amount": "277000.00",
+      "status": "MOCK_APPROVED"
+    },
+    "items": [
+      {
+        "product_id": "bedroom-lighting",
+        "product_name": "편안한 밤 조명 패키지",
+        "unit_price": "99000.00",
+        "quantity": 1,
+        "line_total": "99000.00"
+      },
+      {
+        "product_id": "desk-focus",
+        "product_name": "데스크테리어 집중 패키지",
+        "unit_price": "79000.00",
+        "quantity": 1,
+        "line_total": "79000.00"
+      },
+      {
+        "product_id": "kitchen-sensing",
+        "product_name": "주방 센서 조명 패키지",
+        "unit_price": "99000.00",
+        "quantity": 1,
+        "line_total": "99000.00"
+      }
+    ],
+    "totals": {
+      "count": 5,
+      "revenue": 673000
+    }
+  },
+  "previousStaffEvidence": {
+    "checkedAt": "2026-10-24T09:25:33Z",
+    "seller": true,
+    "sellerOrderIdAndTotal": true,
+    "sellerLineItems": false,
+    "admin": false,
+    "screenshotCaptured": false,
+    "orderId": "ord_9b2c8e4b593e5ecf84dd45becae41982e30571dd",
+    "amount": 277000,
+    "quantity": 3,
+    "totals": {
+      "count": 5,
+      "revenue": 673000
+    },
+    "blocker": "Chrome extension popup blocks reload, screenshot and administrator focus; seller accessibility text confirms order ID and total only."
+  },
+  "currentAttempt": {
+    "seller": false,
+    "admin": false,
+    "screenshot": false,
+    "blocker": "Chrome reports another extension UI open; existing seller tab and fresh seller tab blocked."
+  },
+  "realPayment": false,
+  "deviceConnection": false,
+  "newOrderCreated": false,
+  "reportValidation": [
+    {
+      "file": "docs/2026-10-24/paybridge-space-cart/work-map-20261024-183147-order-recheck.html",
+      "static": true,
+      "mapClicks": true,
+      "keyboardHome": true,
+      "mobile390": true,
+      "relativeLinks": true,
+      "pageErrors": []
+    },
+    {
+      "file": "work-map-guide/work-map-20261024-183147-order-recheck.html",
+      "static": true,
+      "mapClicks": true,
+      "keyboardHome": true,
+      "mobile390": true,
+      "relativeLinks": true,
+      "pageErrors": []
+    }
+  ]
+}
