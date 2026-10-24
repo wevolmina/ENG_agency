@@ -4,6 +4,7 @@ import {RoundedBoxGeometry} from "three/addons/geometries/RoundedBoxGeometry.js"
 export interface BedroomScene {
  setLight(on:boolean):void;
  setView(view:number):void;
+ setAtmosphere(brightness:number,mood:"rest"|"read"):void;
  dispose():void;
 }
 
@@ -80,17 +81,27 @@ export function mountBedroom(host:HTMLElement,onLost:()=>void,onPackage:()=>void
  cylinder(.025,.025,1.1,dark,2.3,.96,1.65);
  for(let i=0;i<7;i++){const a=i*2.4;const leaf=mesh(new THREE.SphereGeometry(1,10,8),sage,2.3+Math.sin(a)*.25,.8+i*.11,1.65+Math.cos(a)*.22);leaf.scale.set(.13,.34,.055);leaf.rotation.set(.3,a,-.65);}
 
- let level=0,toLevel=0,fromLevel=0,angle=.72,toAngle=.72,fromAngle=.72,start=0,animating=false;
+ let level=0,toLevel=0,fromLevel=0,angle=.72,toAngle=.72,fromAngle=.72;
+ let warmth=0,toWarmth=0,fromWarmth=0,brightness=.7,enabled=false;
+ let lightStart=0,viewStart=0,lightMoving=false,viewMoving=false;
+ const warmColor=new THREE.Color(0xffbf6c),readingColor=new THREE.Color(0xffe5bf),lightColor=new THREE.Color();
  const reduced=matchMedia("(prefers-reduced-motion: reduce)");
  const resize=()=>{const {width,height}=host.getBoundingClientRect();if(!width||!height)return;const half=4.45;camera.left=-half*width/height;camera.right=half*width/height;camera.top=half;camera.bottom=-half;camera.updateProjectionMatrix();renderer.setSize(width,height,false);request();};
- function draw(time:number){frame=0;if(disposed||document.hidden)return;const t=reduced.matches?1:Math.min(1,(time-start)/420),ease=t*t*(3-2*t);if(animating){level=fromLevel+(toLevel-fromLevel)*ease;angle=fromAngle+(toAngle-fromAngle)*ease;animating=t<1;}
-  lampLight.intensity=level*13;stripLight.intensity=level*8;lampShade.emissive.setHex(0xffc477);lampShade.emissiveIntensity=level*.7;strip.emissive.setHex(0xffcc77);strip.emissiveIntensity=level*2;glowMat.opacity=level*.72;
-  camera.position.set(Math.sin(angle)*10,7.4,Math.cos(angle)*10);camera.lookAt(target);try{renderer.render(scene,camera)}catch{fail();return}if(animating)request();
+ function draw(time:number){frame=0;if(disposed||document.hidden)return;
+  const eased=(start:number,duration:number)=>{const t=reduced.matches?1:Math.min(1,(time-start)/duration);return {t,e:1-Math.pow(1-t,3)}};
+  if(lightMoving){const {t,e}=eased(lightStart,520);level=fromLevel+(toLevel-fromLevel)*e;warmth=fromWarmth+(toWarmth-fromWarmth)*e;lightMoving=t<1;}
+  if(viewMoving){const {t,e}=eased(viewStart,650);angle=fromAngle+(toAngle-fromAngle)*e;viewMoving=t<1;}
+  lightColor.copy(warmColor).lerp(readingColor,warmth);lampLight.color.copy(lightColor);stripLight.color.copy(lightColor);
+  lampLight.intensity=level*16;stripLight.intensity=level*9;
+  lampShade.emissive.copy(lightColor);lampShade.emissiveIntensity=level*.85;strip.emissive.copy(lightColor);strip.emissiveIntensity=level*2;glowMat.color.copy(lightColor);glowMat.opacity=level*.8;
+  // The room remains legible while a lower ambient level makes the virtual light visible.
+  sun.intensity=2.4-level*.8;hemi.intensity=1.15-level*.2;
+  camera.position.set(Math.sin(angle)*10,7.4,Math.cos(angle)*10);camera.lookAt(target);try{renderer.render(scene,camera)}catch{fail();return}if(lightMoving||viewMoving)request();
  }
  function request(){if(!disposed&&!frame&&!document.hidden)frame=requestAnimationFrame(draw);}
- function animate(){fromLevel=level;fromAngle=angle;start=performance.now();animating=true;request();}
+ function animateLight(){fromLevel=level;fromWarmth=warmth;lightStart=performance.now();lightMoving=true;request();}
  function visible(){if(document.hidden){if(frame)cancelAnimationFrame(frame);frame=0;}else request();}
- function motionChanged(){if(reduced.matches){level=toLevel;angle=toAngle;animating=false;}request();}
+ function motionChanged(){if(reduced.matches){level=toLevel;warmth=toWarmth;angle=toAngle;lightMoving=viewMoving=false;}request();}
  const observer=new ResizeObserver(resize);cleanups.push(()=>observer.disconnect());observer.observe(host);
  const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
  function pick(event:PointerEvent){const r=canvas.getBoundingClientRect();pointer.set((event.clientX-r.left)/r.width*2-1,-(event.clientY-r.top)/r.height*2+1);raycaster.setFromCamera(pointer,camera);if(raycaster.intersectObjects(scene.children)[0]?.object===lamp)onPackage();}
@@ -98,6 +109,10 @@ export function mountBedroom(host:HTMLElement,onLost:()=>void,onPackage:()=>void
  cleanups.push(()=>{canvas.removeEventListener("pointerup",pick);canvas.removeEventListener("webglcontextlost",lost);document.removeEventListener("visibilitychange",visible);reduced.removeEventListener("change",motionChanged)});
  canvas.addEventListener("pointerup",pick);canvas.addEventListener("webglcontextlost",lost);
  document.addEventListener("visibilitychange",visible);reduced.addEventListener("change",motionChanged);resize();
- return {setLight(on){toLevel=on?1:0;animate();},setView(view){toAngle=[.72,.28,1.12][view]??.72;animate();},dispose};
+ return {
+  setLight(on){enabled=on;toLevel=on?brightness:0;animateLight();},
+  setAtmosphere(value,mood){brightness=Math.min(1,Math.max(.1,value));toWarmth=mood==="read"?1:0;toLevel=enabled?brightness:0;animateLight();},
+  setView(view){fromAngle=angle;toAngle=[.72,.28,1.12][view]??.72;viewStart=performance.now();viewMoving=true;request();},dispose
+ };
  }catch(error){dispose();throw error;}
 }
