@@ -16,6 +16,11 @@ test("checkout transaction: parallel retry, conflict, receipt isolation, rollbac
   await assert.rejects(confirmOrder(pool,uid,{...input,quantity:3}),/REQUEST_CONFLICT/);
   assert.equal(await customerReceipt(pool,uid+"-other",a.paymentId),null);
   assert.equal((await customerReceipt(pool,uid,a.paymentId))?.amount,198000);
+  // Disabling new sales must not prevent recovery of an already approved order.
+  await pool.execute("UPDATE packages SET active=0 WHERE product_id=?",[input.productId]);
+  assert.equal((await confirmOrder(pool,uid,input)).paymentId,a.paymentId);
+  await assert.rejects(confirmOrder(pool,uid,{...input,requestId:crypto.randomUUID()}),/PACKAGE_UNAVAILABLE/);
+  await pool.execute("UPDATE packages SET active=1 WHERE product_id=?",[input.productId]);
   const connection=await pool.getConnection();connection.release();
   const faulty={getConnection:async()=>{const c=await pool.getConnection();return new Proxy(c,{get(target,key){if(key==="execute")return (sql:string,args:unknown[])=>{if(sql.startsWith("INSERT INTO payments"))throw new Error("INJECTED_FAILURE");return target.execute(sql,args);};const value=Reflect.get(target,key);return typeof value==="function"?value.bind(target):value;}});}} as unknown as Pool;
   const failed={...input,requestId:crypto.randomUUID()};
