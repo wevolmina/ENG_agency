@@ -2,7 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // Smartspace intake: immutable {customerId,requestId,productId,quantity}.
-    // Auth UID is the owner; only bedroom-lighting quantity 1..10 is accepted.
+    // Auth UID is the owner; only the two mock space packages, quantity 1..10.
     function isAuthenticated() { return request.auth != null; }
     function isOwner(uid) { return isAuthenticated() && request.auth.uid == uid; }
     function validSmartspaceRequest(data) {
@@ -12,7 +12,7 @@ service cloud.firestore {
         && isOwner(data.customerId)
         && data.requestId is string
         && data.requestId.matches('[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}')
-        && data.productId == 'bedroom-lighting'
+        && data.productId in ['bedroom-lighting','kitchen-sensing']
         && data.quantity is int && data.quantity >= 1 && data.quantity <= 10;
     }
     match /smartspace_order_requests/{orderId} {

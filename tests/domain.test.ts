@@ -8,6 +8,14 @@ const input={productId:"planner" as const,quantity:2,requestId:"3fb030ea-9a5b-42
 const payment=buildPayment("customer-a",input,new Date("2026-10-23T01:00:00Z"));
 const secret="unit-test-secret-with-at-least-32-characters";
 test("서버 상품 가격으로 금액 계산",()=>assert.equal(payment.amount,48000));
+test("주방 패키지는 서버 가격 99000원, 센서 값·클라이언트 금액 주입 거부",()=>{
+ const kitchen={...input,productId:"kitchen-sensing" as const,quantity:1};
+ assert.equal(createInput.safeParse(kitchen).success,true);
+ assert.equal(buildPayment("kitchen-customer",kitchen).amount,99000);
+ assert.equal(buildPayment("kitchen-customer",kitchen).productName,"주방 센서 조명 패키지");
+ for(const extra of [{amount:1},{presence:true},{door:true}])assert.equal(createInput.safeParse({...kitchen,...extra}).success,false);
+ assert.equal(sameOrder(buildPayment("customer-a",kitchen),buildPayment("customer-a",{...kitchen,productId:"bedroom-lighting"})),false);
+});
 test("클라이언트 금액 주입 거부",()=>assert.equal(createInput.safeParse({...input,amount:1}).success,false));
 test("지원하지 않는 상품·수량 거부",()=>{for(const data of [{...input,productId:"unknown"},{...input,quantity:0},{...input,quantity:11}])assert.equal(createInput.safeParse(data).success,false);});
 test("동일 고객·요청은 같은 결제 번호, 다른 고객은 분리",()=>{assert.equal(payment.paymentId,buildPayment("customer-a",input).paymentId);assert.notEqual(payment.paymentId,buildPayment("customer-b",input).paymentId);});

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 680" aria-hidden="true">
+<title>직접 제작한 가상 주방</title>
+<path d="M130 220 480 100 760 260 410 400Z" fill="#e4ddc9"/><path d="M130 220v280l280 130V400Z" fill="#c6cfbb"/><path d="M480 100v280l280 140V260Z" fill="#e6e2d2"/><path d="m130 500 350-120 280 140-350 110Z" fill="#ba9670"/>
+<path d="m185 355 300-100 200 106-300 107Z" fill="#f3f0df"/><path d="m185 355 200 113v105L185 463Z" fill="#7d9279"/><path d="m385 468 300-107v100L385 573Z" fill="#8da187"/>
+<path d="m214 248 95-30v105l-95 30Z" fill="#9cbcc1" stroke="#f8f3de" stroke-width="10"/>
+<path d="m420 200 160 80v95l-160-80Z" fill="#9c805d"/>
+<path d="m430 215 62 31v74l-62-31Z" fill="#7d9279"/>
+<path class="kitchen-door" d="m500 250 68 34v74l-68-34Z" fill="#7d9279" stroke="#c1cbb1" stroke-width="3"/>
+<path class="kitchen-task-glow" d="m424 313 154 77 65 55-212-90Z" fill="#ffd89a" opacity="0"/>
+<path d="m323 458 190-64 135 70-190 68Z" fill="#f5f1df"/><path d="m323 458 135 74v85l-135-70Z" fill="#b38b65"/><path d="m458 532 190-68v86l-190 67Z" fill="#997953"/>
+<ellipse cx="541" cy="370" rx="37" ry="15" fill="#687c79"/><path d="M531 354v-26q0-20 18-10" fill="none" stroke="#8c9e98" stroke-width="8"/>
+<path class="kitchen-person" d="M375 420v-55m-17 91 17-36 20 32m-20-73-22 19m22-19 23 12" fill="none" stroke="#675b47" stroke-width="15" opacity="0"/><circle class="kitchen-person" cx="375" cy="342" r="18" fill="#cba57c" opacity="0"/>
+</svg>

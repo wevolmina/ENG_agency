@@ -8,6 +8,13 @@ test("smartspace intake denies spoofing, field injection, mutation and broad rea
   const owner=env.authenticatedContext("owner").firestore(),other=env.authenticatedContext("other").firestore(),anon=env.unauthenticatedContext().firestore();
   const collectionName="smartspace_order_requests",id="ord_"+"a".repeat(40),data={customerId:"owner",requestId:crypto.randomUUID(),productId:"bedroom-lighting",quantity:1};
   await assertSucceeds(setDoc(doc(owner,collectionName,id),data));
+  const kitchenId="ord_"+"d".repeat(40),kitchen={...data,productId:"kitchen-sensing"};
+  await assertSucceeds(setDoc(doc(owner,collectionName,kitchenId),kitchen));
+  await assertSucceeds(getDoc(doc(owner,collectionName,kitchenId)));
+  await assertFails(getDoc(doc(other,collectionName,kitchenId)));
+  await assertFails(updateDoc(doc(owner,collectionName,kitchenId),{productId:"bedroom-lighting"}));
+  await assertFails(setDoc(doc(owner,collectionName,"ord_"+"e".repeat(40)),{...kitchen,presence:true}));
+  await assertFails(setDoc(doc(owner,collectionName,"ord_"+"f".repeat(40)),{...kitchen,door:true}));
   await assertSucceeds(getDoc(doc(owner,collectionName,id)));
   await assertFails(getDoc(doc(other,collectionName,id)));await assertFails(getDoc(doc(anon,collectionName,id)));
   await assertFails(getDocs(collection(owner,collectionName)));await assertFails(deleteDoc(doc(owner,collectionName,id)));
