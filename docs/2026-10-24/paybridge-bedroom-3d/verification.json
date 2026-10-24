@@ -1,0 +1,148 @@
+{
+  "sourceSha": "9ae66fdda25eb55a0d65b2e76a08e5e406ec3904",
+  "sourceArchiveSha256": "3213a85284f1f9986a66853571f4a6da0756c8c8bebe0b7d02621b4f85e1cb7d",
+  "browser": {
+    "checkedAt": "2026-10-24T04:42:48.272Z",
+    "base": "https://paybridge-mock.web.app",
+    "normal": {
+      "webgl2": true,
+      "lightChangesImage": true,
+      "viewChangesProjection": true,
+      "noIdleRenderLoop": true,
+      "visibilityPauseSimulated": true,
+      "oneCanvasAfterRemount": true,
+      "flatPreservesSelectionAndLight": true,
+      "deselectTurnsOff": true,
+      "purchasePackageForwarded": true,
+      "mobile390NoOverflow": true,
+      "reducedMotion": true,
+      "pageErrors": []
+    },
+    "unsupported": {
+      "automaticFlatFallback": true,
+      "noCanvasLeft": true,
+      "purchaseStillAvailable": true,
+      "pageErrors": []
+    },
+    "context-loss": {
+      "automaticFlatFallback": true,
+      "noCanvasLeft": true,
+      "purchaseStillAvailable": true,
+      "pageErrors": []
+    },
+    "setup-error": {
+      "automaticFlatFallback": true,
+      "noCanvasLeft": true,
+      "purchaseStillAvailable": true,
+      "pageErrors": []
+    },
+    "draw-error": {
+      "automaticFlatFallback": true,
+      "noCanvasLeft": true,
+      "purchaseStillAvailable": true,
+      "pageErrors": []
+    },
+    "manualFlatQuery": true
+  },
+  "commerceFixture": {
+    "checkedAt": "2026-10-24T04:41:16.313Z",
+    "method": "local UI fixture; no orders written",
+    "lostResponseRetrySameRequest": true,
+    "pendingBeforeApproval": true,
+    "successMotionOnApprovalOnly": true,
+    "reloadDoesNotReplay": true,
+    "receiptFocus": true,
+    "lateRestoreCannotOverwriteNewReceipt": true,
+    "completedScreenReaderStatus": true,
+    "reducedMotion": true,
+    "mobile390NoOverflow": true,
+    "simulatedCpuSlowdown": 6,
+    "selectionAutomationMs": 1063,
+    "realLowSpecDeviceMeasured": false,
+    "pageErrors": []
+  },
+  "hosting": {
+    "checkedAt": "2026-10-24T04:42:46.800Z",
+    "sourceSha": "9ae66fdda25eb55a0d65b2e76a08e5e406ec3904",
+    "files": [
+      {
+        "path": "assets/bedroom-C3jVIQYV.css",
+        "sha256": "2c0c2a0337f49848445a33b745e5af8a6a38783210be88d86634dbb2559b53a6"
+      },
+      {
+        "path": "assets/bedroom-prYKaHgm.js",
+        "sha256": "4aacd0610f421e74d42630d330d7fec661fb8b5c9eed09b04d29400e598d94bc"
+      },
+      {
+        "path": "assets/bedroom3d-B7ciTmaG.js",
+        "sha256": "b4d4ccfdbfed333a7d58f154910b0651de27cfbac58c9d8300d7377ab25fcfb2"
+      },
+      {
+        "path": "assets/client-D7v0qlgq.js",
+        "sha256": "7bd12048a86acbb1d486e812d96886784757f7c1b071df459ee4d5966e6dd8ef"
+      },
+      {
+        "path": "assets/store-B7_N7cH9.css",
+        "sha256": "89fb2ef7f29c22be111f50a24f70e5ba46c33b81039b756bd6d8c08562b4c66b"
+      },
+      {
+        "path": "assets/store-Bve1rWuM.js",
+        "sha256": "671df9fb6335907a5c592aed163dcc7f480f97cfbf4cfdad3ee5b0aa7ae5aa58"
+      },
+      {
+        "path": "bedroom/illustration.html",
+        "sha256": "7053f7a41e8fa7179b061e938ccf57a4d12ae15f33d2c5bd0ab3b618031f4482"
+      },
+      {
+        "path": "bedroom/index.html",
+        "sha256": "8887fee4e2af3bc6650110de42973b6592a99c275b848e05d0526dd706c2fb52"
+      },
+      {
+        "path": "bedroom/scene.svg",
+        "sha256": "d7140b4fe26ae6029e15303ca2a8daf026d889029c738c52e1b8e539f50b95f9"
+      },
+      {
+        "path": "index.html",
+        "sha256": "9651806f498348fede6e1d31f65e83627813b6c06b5b3090f745025241afdc3f"
+      },
+      {
+        "path": "licenses/three-LICENSE.txt",
+        "sha256": "8b378ebe60e2fe500158cb0ac71cb5e8b7d92953c2abcc63a0eb90499653b5bc"
+      }
+    ]
+  },
+  "order": {
+    "checkedAt": "2026-10-24T04:43:20.829Z",
+    "source": "3D bedroom selection and light on",
+    "orderId": "ord_9aa48caf8745af43b319ea0d7b7340d5e6bbdab8",
+    "paymentId": "pay_9aa48caf8745af43b319ea0d7b7340d5e6bbdab8",
+    "amount": 99000,
+    "quantity": 1,
+    "status": "MOCK_APPROVED",
+    "retrySameOrder": true,
+    "reloadRestoresWithoutMotion": true,
+    "pageErrors": []
+  },
+  "db": {
+    "checkedAt": "2026-10-24T04:45:44.212Z",
+    "order": {
+      "order_id": "ord_9aa48caf8745af43b319ea0d7b7340d5e6bbdab8",
+      "amount": "99000.00",
+      "status": "MOCK_APPROVED",
+      "payment_id": "pay_9aa48caf8745af43b319ea0d7b7340d5e6bbdab8",
+      "quantity": 1
+    },
+    "totals": {
+      "count": 3,
+      "revenue": 297000
+    }
+  },
+  "staff": {
+    "seller": false,
+    "admin": false,
+    "reason": "Chrome extension popup blocks fresh staff UI observation; prior commerce release verified both roles."
+  },
+  "realPayment": false,
+  "deviceConnection": false,
+  "oldRecordsDeleted": false
+}
