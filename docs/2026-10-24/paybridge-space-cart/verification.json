@@ -1,0 +1,352 @@
+{
+  "sourceSha": "eea076748bf9e0270f4e56d6332441f7b1dc2053",
+  "archiveSha256": "9fdaf030ea1e6d647d929285974ed6cf4b810c7215d44d457df381b62c20f502",
+  "checks": {
+    "checkedAt": "2026-10-24T09:19:41.139Z",
+    "unitPassed": 24,
+    "unitFailed": 0,
+    "customerTypecheck": true,
+    "merchantTypecheck": true,
+    "customerBuild": true,
+    "firestoreEmulatorSuitesPassed": 3,
+    "legacySingleRulesRetained": true,
+    "prototypeRules": true,
+    "localNextBuildExecuted": false
+  },
+  "localCartFixture": {
+    "checkedAt": "2026-10-24T09:17:06.797Z",
+    "method": "Local mocked API; no DB writes",
+    "desk79000": true,
+    "combined277000": true,
+    "removeRecalculates": true,
+    "consentResetsOnChange": true,
+    "draftSurvives3dVisit": true,
+    "canonicalPendingPreserved": true,
+    "legacyPendingUsesLegacyEndpoint": true,
+    "receipt3Lines": true,
+    "reloadDoesNotReplay": true,
+    "lateRestoreCannotOverwrite": true,
+    "completionFocus": true,
+    "mobile": [
+      {
+        "width": 320,
+        "height": 740,
+        "noOverflow": true
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "noOverflow": true
+      },
+      {
+        "width": 430,
+        "height": 932,
+        "noOverflow": true
+      },
+      {
+        "width": 768,
+        "height": 1024,
+        "noOverflow": true
+      },
+      {
+        "width": 844,
+        "height": 390,
+        "noOverflow": true
+      }
+    ],
+    "reducedMotion": true,
+    "realPhoneMeasured": false,
+    "pageErrors": []
+  },
+  "staffMobileFixture": {
+    "checkedAt": "2026-10-24T09:20:28.943Z",
+    "method": "Own headless browser with mocked Auth and staff APIs; not actual account access",
+    "results": [
+      {
+        "path": "/",
+        "threeLines": true,
+        "total277000": true,
+        "searchByLineName": true,
+        "mobile390NoPageOverflow": true
+      },
+      {
+        "path": "/admin",
+        "threeLines": true,
+        "total277000": true,
+        "searchByLineName": true,
+        "mobile390NoPageOverflow": true
+      }
+    ],
+    "pageErrors": []
+  },
+  "isolatedMySql": {
+    "checkedAt": "2026-10-24T09:12:57.524Z",
+    "isolatedDatabase": true,
+    "parallelRetryAndReordering": true,
+    "compositionConflict": true,
+    "atomicRollback": true,
+    "hiddenAndRepricedPackage": true,
+    "receiptLinesAndOwnership": true,
+    "staffItemsAndTotals": true,
+    "legacyReceiptRecovery": true,
+    "testDatabaseRetained": true
+  },
+  "migration": {
+    "checkedAt": "2026-10-24T09:15:02.757Z",
+    "packages": [
+      {
+        "product_id": "bedroom-lighting",
+        "space_id": "bedroom",
+        "name": "편안한 밤 조명 패키지",
+        "unit_price": 99000,
+        "active": 1
+      },
+      {
+        "product_id": "desk-focus",
+        "space_id": "desk",
+        "name": "데스크테리어 집중 패키지",
+        "unit_price": 79000,
+        "active": 1
+      },
+      {
+        "product_id": "kitchen-sensing",
+        "space_id": "kitchen",
+        "name": "주방 센서 조명 패키지",
+        "unit_price": 99000,
+        "active": 1
+      }
+    ],
+    "previousPayments": 4,
+    "currentPayments": 4,
+    "existingPaymentIdsPreserved": true,
+    "staffMembershipsPreserved": true
+  },
+  "hosting": {
+    "checkedAt": "2026-10-24T09:21:07.094Z",
+    "files": [
+      {
+        "path": "index.html",
+        "sha256": "b21a9be6463de5f7bf1e71619dbc84e8e85e2c1e8c4347ec50b9a9be16c9bbe1"
+      },
+      {
+        "path": "assets/bedroom-atmosphere-CQyJZ0dr.js",
+        "sha256": "b1cf8db666a7d7bfc05e8f8c93c4536728e9d086bf6f0270fa1fd0e607491519"
+      },
+      {
+        "path": "assets/bedroom-atmosphere-C_OFED2i.css",
+        "sha256": "49dd469fa9d7c672777134e158186fadde587a200f6119a1a3afac20b0d854c1"
+      },
+      {
+        "path": "assets/bedroom-DyMyfvBF.js",
+        "sha256": "8d10e8f136a1319e27cb1a8661dcb93ba9c58bab5761cbaf38039e27b373e92a"
+      },
+      {
+        "path": "assets/bedroom3d-CBGYeWoA.js",
+        "sha256": "90000f450676577efb95ddd5cb68df4cf910f3af01ae23cf921e5b52f9958f4c"
+      },
+      {
+        "path": "assets/client-D7v0qlgq.js",
+        "sha256": "7bd12048a86acbb1d486e812d96886784757f7c1b071df459ee4d5966e6dd8ef"
+      },
+      {
+        "path": "assets/kitchen-DA7MZbo4.js",
+        "sha256": "9c09f3b308e2fad9e19a1cabc554066d107b2564e6bc900e5e208ce694bae045"
+      },
+      {
+        "path": "assets/kitchen-Dx9iutPr.css",
+        "sha256": "1d7a213790b30f9bf31368c7b6232633a86c2c66e0d26067e561ac0d8c5fddfd"
+      },
+      {
+        "path": "assets/kitchen3d-B1c-emIJ.js",
+        "sha256": "15a4dd3d27878ed48771f7265970edada51981b115bce74f50fdec6544977220"
+      },
+      {
+        "path": "assets/RoundedBoxGeometry-Cp_08WWy.js",
+        "sha256": "15c2daa3650786ae28d78f1c36c94e437dfcc33175a473a0a48f8f2bf43768f0"
+      },
+      {
+        "path": "assets/store-DqxAqhkE.css",
+        "sha256": "e7314d2503ff32df7d7062b5877df7197e0bc8a8e9530b507ef93454e3be34ff"
+      },
+      {
+        "path": "assets/store-DY4QS4Xf.js",
+        "sha256": "002d11732ed2538c959c2d40aa5ebc356e627c1d96ac0a9e0cb2c97d71f42859"
+      },
+      {
+        "path": "bedroom/illustration.html",
+        "sha256": "7053f7a41e8fa7179b061e938ccf57a4d12ae15f33d2c5bd0ab3b618031f4482"
+      },
+      {
+        "path": "bedroom/index.html",
+        "sha256": "0a4fc95718c83b8e638cb78c288495f460c8f9de4c0ab1c3155c81ffff8a5fb1"
+      },
+      {
+        "path": "bedroom/scene.svg",
+        "sha256": "d7140b4fe26ae6029e15303ca2a8daf026d889029c738c52e1b8e539f50b95f9"
+      },
+      {
+        "path": "kitchen/index.html",
+        "sha256": "c0de7feb8562c0d367aca3a3d472cf00035a083d670ae4d6d5c1329b93ceccdd"
+      },
+      {
+        "path": "licenses/three-LICENSE.txt",
+        "sha256": "8b378ebe60e2fe500158cb0ac71cb5e8b7d92953c2abcc63a0eb90499653b5bc"
+      }
+    ],
+    "catalogStatus": 200,
+    "hostingOnly": true
+  },
+  "deploy": {
+    "checkedAt": "2026-10-24T09:20:40.643Z",
+    "sourceSha": "eea076748bf9e0270f4e56d6332441f7b1dc2053",
+    "id": "dpl_6J7gR6mcJ6mUEHDvdhE6csuQixvf",
+    "ready": true,
+    "api": "https://paybridge-mock.vercel.app",
+    "catalog": 200,
+    "unauthenticatedCart": 401,
+    "firestoreRulesDeployed": true,
+    "authChanged": false,
+    "functionsDeployed": false
+  },
+  "productionUi": {
+    "checkedAt": "2026-10-24T09:20:59.815Z",
+    "source": "Production catalog and UI; no checkout submitted",
+    "total": "277,000원",
+    "selectedCount": 3
+  },
+  "order": {
+    "checkedAt": "2026-10-24T09:20:59.391Z",
+    "source": "Mobile three-package cart; explicit mock consent",
+    "orderId": "ord_9b2c8e4b593e5ecf84dd45becae41982e30571dd",
+    "paymentId": "pay_9b2c8e4b593e5ecf84dd45becae41982e30571dd",
+    "amount": 277000,
+    "quantity": 3,
+    "status": "MOCK_APPROVED",
+    "items": [
+      {
+        "productId": "bedroom-lighting",
+        "productName": "편안한 밤 조명 패키지",
+        "unitPrice": 99000,
+        "quantity": 1,
+        "lineTotal": 99000
+      },
+      {
+        "productId": "desk-focus",
+        "productName": "데스크테리어 집중 패키지",
+        "unitPrice": 79000,
+        "quantity": 1,
+        "lineTotal": 79000
+      },
+      {
+        "productId": "kitchen-sensing",
+        "productName": "주방 센서 조명 패키지",
+        "unitPrice": 99000,
+        "quantity": 1,
+        "lineTotal": 99000
+      }
+    ],
+    "reorderedRetrySameOrder": true,
+    "changedComposition409": true,
+    "invalid": [
+      {
+        "label": "amount",
+        "status": 400
+      },
+      {
+        "label": "duplicate",
+        "status": 400
+      },
+      {
+        "label": "line-price",
+        "status": 400
+      },
+      {
+        "label": "quantity",
+        "status": 400
+      },
+      {
+        "label": "focus",
+        "status": 400
+      }
+    ],
+    "reloadRestoresWithoutMotion": true,
+    "pageErrors": []
+  },
+  "db": {
+    "checkedAt": "2026-10-24T09:21:08.395Z",
+    "payment": {
+      "payment_id": "pay_9b2c8e4b593e5ecf84dd45becae41982e30571dd",
+      "order_id": "ord_9b2c8e4b593e5ecf84dd45becae41982e30571dd",
+      "product_name": "공간 패키지 3종",
+      "quantity": 3,
+      "amount": "277000.00",
+      "status": "MOCK_APPROVED"
+    },
+    "items": [
+      {
+        "product_id": "bedroom-lighting",
+        "product_name": "편안한 밤 조명 패키지",
+        "unit_price": "99000.00",
+        "quantity": 1,
+        "line_total": "99000.00"
+      },
+      {
+        "product_id": "desk-focus",
+        "product_name": "데스크테리어 집중 패키지",
+        "unit_price": "79000.00",
+        "quantity": 1,
+        "line_total": "79000.00"
+      },
+      {
+        "product_id": "kitchen-sensing",
+        "product_name": "주방 센서 조명 패키지",
+        "unit_price": "99000.00",
+        "quantity": 1,
+        "line_total": "99000.00"
+      }
+    ],
+    "totals": {
+      "count": 5,
+      "revenue": 673000
+    }
+  },
+  "staff": {
+    "checkedAt": "2026-10-24T09:25:33Z",
+    "seller": true,
+    "sellerOrderIdAndTotal": true,
+    "sellerLineItems": false,
+    "admin": false,
+    "screenshotCaptured": false,
+    "orderId": "ord_9b2c8e4b593e5ecf84dd45becae41982e30571dd",
+    "amount": 277000,
+    "quantity": 3,
+    "totals": {
+      "count": 5,
+      "revenue": 673000
+    },
+    "blocker": "Chrome extension popup blocks reload, screenshot and administrator focus; seller accessibility text confirms order ID and total only."
+  },
+  "realPhoneMeasured": false,
+  "realPayment": false,
+  "deviceConnection": false,
+  "reportValidation": [
+    {
+      "file": "docs/2026-10-24/paybridge-space-cart/work-map-20261024182613-space-cart.html",
+      "static": true,
+      "mapClicks": true,
+      "keyboardHome": true,
+      "mobile390": true,
+      "relativeLinks": true,
+      "pageErrors": []
+    },
+    {
+      "file": "work-map-guide/work-map-20261024182613-space-cart.html",
+      "static": true,
+      "mapClicks": true,
+      "keyboardHome": true,
+      "mobile390": true,
+      "relativeLinks": true,
+      "pageErrors": []
+    }
+  ]
+}
