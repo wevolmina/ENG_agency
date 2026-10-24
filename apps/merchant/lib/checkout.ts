@@ -4,18 +4,24 @@ import {buildPayment,createInput,type Payment} from "../../../functions/src/doma
 import {payloadHash} from "./payments";
 export type OrderInput=ReturnType<typeof createInput.parse>;
 export function requestHash(input:OrderInput){return createHash("sha256").update(JSON.stringify([input.productId,input.quantity])).digest("hex");}
-function receipt(row:RowDataPacket):Payment {
+export type OrderLine={productId:string;productName:string;unitPrice:number;quantity:number;lineTotal:number};
+export type StoredReceipt=Omit<Payment,"productId">&{productId:string;items:OrderLine[]};
+export async function storedReceipt(db:Pick<Pool,"execute">,row:RowDataPacket):Promise<StoredReceipt>{
+ const [items]=await db.execute<RowDataPacket[]>("SELECT product_id,product_name,unit_price,quantity FROM order_items WHERE order_id=? ORDER BY line_number",[row.order_id]);
+ return {...receipt(row),items:items.map(i=>({productId:i.product_id,productName:i.product_name,unitPrice:Number(i.unit_price),quantity:Number(i.quantity),lineTotal:Number(i.unit_price)*Number(i.quantity)}))};
+}
+function receipt(row:RowDataPacket):Omit<Payment,"productId">&{productId:string} {
  return {paymentId:row.payment_id,orderId:row.order_id,customerId:row.customer_id,merchantId:row.merchant_id,productId:row.product_id,productName:row.product_name,quantity:row.quantity,amount:Number(row.amount),currency:row.currency,status:row.status,createdAt:new Date(String(row.created_at).replace(" ","T")+"Z").toISOString()};
 }
 export async function existingOrder(pool:Pool,uid:string,input:OrderInput){
  const [rows]=await pool.execute<RowDataPacket[]>("SELECT p.*,o.request_hash FROM orders o JOIN payments p ON p.order_id=o.order_id WHERE o.customer_id=? AND o.request_id=?",[uid,input.requestId]);
  if(!rows.length)return null;
  if(rows[0].request_hash!==requestHash(input))throw new Error("REQUEST_CONFLICT");
- return receipt(rows[0]);
+ return storedReceipt(pool,rows[0]);
 }
 export async function customerReceipt(pool:Pool,uid:string,id:string){
  const [rows]=await pool.execute<RowDataPacket[]>("SELECT * FROM payments WHERE payment_id=? AND BINARY customer_id=BINARY ?",[id,uid]);
- return rows.length?receipt(rows[0]):null;
+ return rows.length?storedReceipt(pool,rows[0]):null;
 }
 export async function confirmOrder(pool:Pool,uid:string,input:OrderInput){
  const p=buildPayment(uid,input),hash=requestHash(input),time=p.createdAt.slice(0,23).replace("T"," ");
@@ -26,14 +32,14 @@ export async function confirmOrder(pool:Pool,uid:string,input:OrderInput){
   const [orders]=await c.execute<RowDataPacket[]>("SELECT request_hash FROM orders WHERE order_id=? FOR UPDATE",[p.orderId]);
   if(orders[0]?.request_hash!==hash)throw new Error("REQUEST_CONFLICT");
   const [old]=await c.execute<RowDataPacket[]>("SELECT * FROM payments WHERE payment_id=?",[p.paymentId]);
-  if(old.length){await c.commit();return receipt(old[0]);}
+  if(old.length){const result=await storedReceipt(c,old[0]);await c.commit();return result;}
   const [packages]=await c.execute<RowDataPacket[]>("SELECT name,unit_price,merchant_id,active FROM packages WHERE product_id=? FOR SHARE",[p.productId]);
   const product=packages[0];
   if(!product||!product.active)throw new Error("PACKAGE_UNAVAILABLE");
   if(Number(product.unit_price)*p.quantity!==p.amount||product.merchant_id!==p.merchantId||product.name!==p.productName)throw new Error("PACKAGE_CHANGED");
   await c.execute("INSERT INTO order_items (order_id,line_number,product_id,product_name,unit_price,quantity) VALUES (?,1,?,?,?,?)",[p.orderId,p.productId,p.productName,p.amount/p.quantity,p.quantity]);
   await c.execute("INSERT INTO payments (payment_id,order_id,customer_id,merchant_id,product_id,product_name,quantity,amount,currency,status,created_at,payload_hash) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",[p.paymentId,p.orderId,uid,p.merchantId,p.productId,p.productName,p.quantity,p.amount,p.currency,p.status,time,payloadHash(p)]);
-  await c.commit();return p;
+  await c.commit();return {...p,items:[{productId:p.productId,productName:p.productName,unitPrice:p.amount/p.quantity,quantity:p.quantity,lineTotal:p.amount}]};
  }catch(error){await c.rollback();throw error;}finally{c.release();}
 }
 export async function recordRequest(token:string,uid:string,input:OrderInput){

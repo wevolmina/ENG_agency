@@ -2,7 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // Smartspace intake: immutable {customerId,requestId,productId,quantity}.
-    // Auth UID is the owner; only the two mock space packages, quantity 1..10.
+    // Auth UID is the owner; legacy single-package intake remains immutable.
     function isAuthenticated() { return request.auth != null; }
     function isOwner(uid) { return isAuthenticated() && request.auth.uid == uid; }
     function validSmartspaceRequest(data) {
@@ -12,7 +12,7 @@ service cloud.firestore {
         && isOwner(data.customerId)
         && data.requestId is string
         && data.requestId.matches('[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}')
-        && data.productId in ['bedroom-lighting','kitchen-sensing']
+        && data.productId in ['bedroom-lighting','kitchen-sensing','desk-focus']
         && data.quantity is int && data.quantity >= 1 && data.quantity <= 10;
     }
     match /smartspace_order_requests/{orderId} {
@@ -20,6 +20,30 @@ service cloud.firestore {
       allow create: if isAuthenticated() && orderId.matches('ord_[a-f0-9]{40}')
         && validSmartspaceRequest(request.resource.data);
       // No updates, including owner updates, are allowed for immutable intake.
+      allow list, update, delete: if false;
+    }
+    // Cart intake: exact {customerId,requestId,items}, one of each space, max3.
+    function validCartItem(item) {
+      return item is map && item.keys().hasAll(['productId','quantity'])
+        && item.keys().hasOnly(['productId','quantity'])
+        && item.productId in ['bedroom-lighting','kitchen-sensing','desk-focus']
+        && item.quantity is int && item.quantity == 1;
+    }
+    function validCart(data) {
+      return data.keys().hasAll(['customerId','requestId','items'])
+        && data.keys().hasOnly(['customerId','requestId','items'])
+        && data.customerId is string && data.customerId.size() > 0 && data.customerId.size() <= 128
+        && isOwner(data.customerId)
+        && data.requestId is string
+        && data.requestId.matches('[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}')
+        && data.items is list && data.items.size() >= 1 && data.items.size() <= 3
+        && validCartItem(data.items[0])
+        && (data.items.size() < 2 || (validCartItem(data.items[1]) && data.items[0].productId != data.items[1].productId))
+        && (data.items.size() < 3 || (validCartItem(data.items[2]) && data.items[0].productId != data.items[2].productId && data.items[1].productId != data.items[2].productId));
+    }
+    match /smartspace_cart_requests/{orderId} {
+      allow get: if isOwner(resource.data.customerId);
+      allow create: if isAuthenticated() && orderId.matches('ord_[a-f0-9]{40}') && validCart(request.resource.data);
       allow list, update, delete: if false;
     }
     match /order_requests/{orderId} {
