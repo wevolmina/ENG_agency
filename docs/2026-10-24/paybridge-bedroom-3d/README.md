@@ -27,3 +27,9 @@ Aiven 상태는 사용자가 Running/READY로 확인했습니다. 현재 Host �
 ### 전원 상태 정정 및 복구 진행
 
 사용자가 MySQL Powered off를 확인하고 Power on했습니다. AI가 Aiven에서 **Rebuilding**을 직접 확인했습니다. 최신 보고서는 이 상태를 반영하며, 시작 완료·주문 대조는 아직 미확인입니다. 위의 Running/READY는 당시 사용자 응답이고 이후 이 내용으로 정정합니다.
+
+## 최신 복구 확인 · 2026-10-24T08:22:28.420Z
+
+**DNS·DB·상품 API 복구, 기존 99,000원 주문 일치.** 직원 화면 대조는 아직 미확인.
+
+[최신 HTML](work-map-20261024172349-db-recovered.html) · [결과 Markdown](result-20261024172349-db-recovered.md) · [검증 JSON](verification-20261024172349-db-recovered.json)

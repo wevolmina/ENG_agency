@@ -1,0 +1,64 @@
+{
+  "checkedAt": "2026-10-24T08:23:49.401Z",
+  "userReported": "MySQL powered off then powered on",
+  "aivenObserved": "Rebuilding before recovery",
+  "health": {
+    "checkedAt": "2026-10-24T08:22:28.420Z",
+    "dns": [
+      {
+        "resolver": "system",
+        "resolved": true
+      },
+      {
+        "resolver": "cloudflare",
+        "resolved": true
+      },
+      {
+        "resolver": "google",
+        "resolved": true
+      }
+    ],
+    "http": [
+      {
+        "path": "/api/catalog",
+        "status": 200
+      },
+      {
+        "path": "/",
+        "status": 200
+      },
+      {
+        "path": "/admin",
+        "status": 200
+      }
+    ]
+  },
+  "db": {
+    "checkedAt": "2026-10-24T08:22:36.694Z",
+    "order": {
+      "order_id": "ord_9aa48caf8745af43b319ea0d7b7340d5e6bbdab8",
+      "amount": "99000.00",
+      "status": "MOCK_APPROVED",
+      "payment_id": "pay_9aa48caf8745af43b319ea0d7b7340d5e6bbdab8",
+      "quantity": 1
+    },
+    "totals": {
+      "count": 3,
+      "revenue": 297000
+    }
+  },
+  "staff": {
+    "seller": false,
+    "admin": false,
+    "reason": "Chrome control timeout; waiting for extension popup closure"
+  },
+  "actions": {
+    "newOrder": false,
+    "dbMutation": false,
+    "rolesChanged": false,
+    "environmentChanged": false,
+    "deployment": false,
+    "realPayment": false,
+    "deviceConnection": false
+  }
+}
