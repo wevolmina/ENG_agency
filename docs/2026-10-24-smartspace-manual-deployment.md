@@ -68,3 +68,5 @@ Vercel CLI에서 기존 프로젝트에 연결된 것을 확인한 뒤 수동 pr
 - 자동 배포 설정: https://vercel.com/docs/project-configuration/git-configuration
 
 기존 진행 보고서는 당시의 대기 상태를 보존합니다. 이번 게시 이후에는 팀 초대가 소스 다운로드의 선행 조건이 아닙니다. 배포는 사용자가 직접 수행합니다.
+## 배포 계정
+이 프로젝트의 수동 배포는 GitHub wevolmina와 연결된 Vercel 계정에서 진행합니다.
