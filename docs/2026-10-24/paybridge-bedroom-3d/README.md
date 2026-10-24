@@ -39,3 +39,7 @@ Aiven 상태는 사용자가 Running/READY로 확인했습니다. 현재 Host �
 **DNS·DB·상품 API 복구, 기존 99,000원 주문 일치.** 두 직원 화면도 대조 완료.
 
 [최신 HTML](work-map-20261024172555-db-recovered.html) · [결과 Markdown](result-20261024172555-db-recovered.md) · [검증 JSON](verification-20261024172555-db-recovered.json)
+
+## 다음 단계 · 조명 모션·모바일 고도화
+
+[최신 전체 계획·완료/남은 작업](../paybridge-bedroom-motion/result-20261024173631.md) · [HTML 보고서](../paybridge-bedroom-motion/work-map-20261024173631-bedroom-motion.html) · [소스 ZIP](../paybridge-bedroom-motion/paybridge-source-d7a0bbe.zip)

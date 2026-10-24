@@ -1,0 +1,238 @@
+{
+  "sourceSha": "d7a0bbe6aa11dc82cbf9dea5d6068c7137205556",
+  "mePlanSha": "a25f2f99968b1308eb6d08aaca415d1df91d228b",
+  "archiveSha256": "2f2492e5774cc4c2f21f4f3c2c1a5ceaf8384b94a752a2ea9fbb9374a55eb33a",
+  "local": {
+    "checkedAt": "2026-10-24T08:32:35.585Z",
+    "base": "http://127.0.0.1:5186",
+    "presetsChangeRenderedPixels": true,
+    "brightnessKeyboardAndPixels": true,
+    "rapidViewAndLight": true,
+    "idleFramesStop": true,
+    "flatPreservesBrightness": true,
+    "remountPreservesState": true,
+    "mobileViewports": [
+      {
+        "width": 320,
+        "height": 740,
+        "noOverflow": true
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "noOverflow": true
+      },
+      {
+        "width": 430,
+        "height": 932,
+        "noOverflow": true
+      },
+      {
+        "width": 768,
+        "height": 1024,
+        "noOverflow": true
+      },
+      {
+        "width": 844,
+        "height": 390,
+        "noOverflow": true
+      }
+    ],
+    "mobilePurchaseVisible": true,
+    "focusedSliderNotObscured": true,
+    "touchTargets44": true,
+    "reducedMotion": true,
+    "reset": true,
+    "purchaseForwarded": true,
+    "checkoutWrites": 0,
+    "pageErrors": [],
+    "realPhoneMeasured": false
+  },
+  "live": {
+    "checkedAt": "2026-10-24T08:34:02.056Z",
+    "base": "https://paybridge-mock.web.app",
+    "presetsChangeRenderedPixels": true,
+    "brightnessKeyboardAndPixels": true,
+    "rapidViewAndLight": true,
+    "idleFramesStop": true,
+    "flatPreservesBrightness": true,
+    "remountPreservesState": true,
+    "mobileViewports": [
+      {
+        "width": 320,
+        "height": 740,
+        "noOverflow": true
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "noOverflow": true
+      },
+      {
+        "width": 430,
+        "height": 932,
+        "noOverflow": true
+      },
+      {
+        "width": 768,
+        "height": 1024,
+        "noOverflow": true
+      },
+      {
+        "width": 844,
+        "height": 390,
+        "noOverflow": true
+      }
+    ],
+    "mobilePurchaseVisible": true,
+    "focusedSliderNotObscured": true,
+    "touchTargets44": true,
+    "reducedMotion": true,
+    "reset": true,
+    "purchaseForwarded": true,
+    "checkoutWrites": 0,
+    "pageErrors": [],
+    "realPhoneMeasured": false
+  },
+  "hosting": {
+    "checkedAt": "2026-10-24T08:33:57.874Z",
+    "files": [
+      {
+        "path": "index.html",
+        "sha256": "9651806f498348fede6e1d31f65e83627813b6c06b5b3090f745025241afdc3f"
+      },
+      {
+        "path": "assets/bedroom-BB64o-hu.js",
+        "sha256": "d0eec4ce7940fd71f388b50fbe9b2d97ac1e5d30c13611f59b5a9ffee2eec1ec"
+      },
+      {
+        "path": "assets/bedroom-C_OFED2i.css",
+        "sha256": "49dd469fa9d7c672777134e158186fadde587a200f6119a1a3afac20b0d854c1"
+      },
+      {
+        "path": "assets/bedroom3d-whRxejDA.js",
+        "sha256": "41e259a5071f14f5195550064d52f88252cd91918e98805abf54ba78b4f0c4c1"
+      },
+      {
+        "path": "assets/client-D7v0qlgq.js",
+        "sha256": "7bd12048a86acbb1d486e812d96886784757f7c1b071df459ee4d5966e6dd8ef"
+      },
+      {
+        "path": "assets/store-B7_N7cH9.css",
+        "sha256": "89fb2ef7f29c22be111f50a24f70e5ba46c33b81039b756bd6d8c08562b4c66b"
+      },
+      {
+        "path": "assets/store-Bve1rWuM.js",
+        "sha256": "671df9fb6335907a5c592aed163dcc7f480f97cfbf4cfdad3ee5b0aa7ae5aa58"
+      },
+      {
+        "path": "bedroom/illustration.html",
+        "sha256": "7053f7a41e8fa7179b061e938ccf57a4d12ae15f33d2c5bd0ab3b618031f4482"
+      },
+      {
+        "path": "bedroom/index.html",
+        "sha256": "9b27ba02b4d5b62dc8c1423f0bce2cbf391e3a0a35fc9bfacbb2b8b767ad63d8"
+      },
+      {
+        "path": "bedroom/scene.svg",
+        "sha256": "d7140b4fe26ae6029e15303ca2a8daf026d889029c738c52e1b8e539f50b95f9"
+      },
+      {
+        "path": "licenses/three-LICENSE.txt",
+        "sha256": "8b378ebe60e2fe500158cb0ac71cb5e8b7d92953c2abcc63a0eb90499653b5bc"
+      }
+    ],
+    "catalogStatus": 200,
+    "hostingOnly": true
+  },
+  "commerceFixture": {
+    "checkedAt": "2026-10-24T08:31:49.857Z",
+    "method": "local UI fixture; no orders written",
+    "lostResponseRetrySameRequest": true,
+    "pendingBeforeApproval": true,
+    "successMotionOnApprovalOnly": true,
+    "reloadDoesNotReplay": true,
+    "receiptFocus": true,
+    "lateRestoreCannotOverwriteNewReceipt": true,
+    "completedScreenReaderStatus": true,
+    "reducedMotion": true,
+    "mobile390NoOverflow": true,
+    "simulatedCpuSlowdown": 6,
+    "selectionAutomationMs": 330,
+    "realLowSpecDeviceMeasured": false,
+    "pageErrors": []
+  },
+  "existing3dRegression": {
+    "checkedAt": "2026-10-24T08:31:10.663Z",
+    "base": "http://127.0.0.1:5186",
+    "normal": {
+      "webgl2": true,
+      "lightChangesImage": true,
+      "viewChangesProjection": true,
+      "noIdleRenderLoop": true,
+      "visibilityPauseSimulated": true,
+      "oneCanvasAfterRemount": true,
+      "flatPreservesSelectionAndLight": true,
+      "deselectTurnsOff": true,
+      "purchasePackageForwarded": true,
+      "mobile390NoOverflow": true,
+      "reducedMotion": true,
+      "pageErrors": []
+    },
+    "unsupported": {
+      "automaticFlatFallback": true,
+      "noCanvasLeft": true,
+      "purchaseStillAvailable": true,
+      "pageErrors": []
+    },
+    "context-loss": {
+      "automaticFlatFallback": true,
+      "noCanvasLeft": true,
+      "purchaseStillAvailable": true,
+      "pageErrors": []
+    },
+    "setup-error": {
+      "automaticFlatFallback": true,
+      "noCanvasLeft": true,
+      "purchaseStillAvailable": true,
+      "pageErrors": []
+    },
+    "draw-error": {
+      "automaticFlatFallback": true,
+      "noCanvasLeft": true,
+      "purchaseStillAvailable": true,
+      "pageErrors": []
+    },
+    "manualFlatQuery": true
+  },
+  "staffEvidence": {
+    "source": "previous step",
+    "path": "../paybridge-bedroom-3d/verification-20261024172555-db-recovered.json"
+  },
+  "realPhoneMeasured": false,
+  "newOrder": false,
+  "dbChanged": false,
+  "realPayment": false,
+  "deviceConnection": false,
+  "reportValidation": [
+    {
+      "file": "docs/2026-10-24/paybridge-bedroom-motion/work-map-20261024173631-bedroom-motion.html",
+      "static": true,
+      "mapClicks": true,
+      "keyboardHome": true,
+      "mobile390": true,
+      "relativeLinks": true,
+      "pageErrors": []
+    },
+    {
+      "file": "work-map-guide/work-map-20261024173631-bedroom-motion.html",
+      "static": true,
+      "mapClicks": true,
+      "keyboardHome": true,
+      "mobile390": true,
+      "relativeLinks": true,
+      "pageErrors": []
+    }
+  ],
+  "publicationScopeScan": true
+}
