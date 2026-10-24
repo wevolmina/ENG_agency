@@ -1,0 +1,86 @@
+{
+  "checkedAt": "2026-10-24T08:20:27.583Z",
+  "scope": "Read-only existing 3D mock order recheck; no new order",
+  "target": {
+    "orderId": "ord_9aa48caf8745af43b319ea0d7b7340d5e6bbdab8",
+    "amount": 99000,
+    "status": "MOCK_APPROVED"
+  },
+  "historicalDb": {
+    "checkedAt": "2026-10-24T04:45:44.212Z",
+    "order": {
+      "order_id": "ord_9aa48caf8745af43b319ea0d7b7340d5e6bbdab8",
+      "amount": "99000.00",
+      "status": "MOCK_APPROVED",
+      "payment_id": "pay_9aa48caf8745af43b319ea0d7b7340d5e6bbdab8",
+      "quantity": 1
+    },
+    "totals": {
+      "count": 3,
+      "revenue": 297000
+    },
+    "label": "Previous verification, not current DB evidence"
+  },
+  "current": {
+    "checkedAt": "2026-10-24T08:20:27.583Z",
+    "dns": [
+      {
+        "resolver": "system",
+        "resolved": false,
+        "error": "ENOTFOUND"
+      },
+      {
+        "resolver": "cloudflare",
+        "resolved": false,
+        "error": "ENOTFOUND"
+      },
+      {
+        "resolver": "google",
+        "resolved": false,
+        "error": "ENOTFOUND"
+      }
+    ],
+    "http": [
+      {
+        "path": "/api/catalog",
+        "status": 503
+      },
+      {
+        "path": "/",
+        "status": 200
+      },
+      {
+        "path": "/admin",
+        "status": 200
+      }
+    ],
+    "healthCheckedAfterPowerOn": true
+  },
+  "seller": {
+    "authenticated": true,
+    "orderMatched": false,
+    "result": "Data loading and connection delay shown; zero orders cannot be inferred"
+  },
+  "admin": {
+    "orderMatched": false,
+    "result": "Browser extension UI/focus timeout blocked fresh authenticated screen read; HTTP 200 verifies shell only"
+  },
+  "aivenServiceState": {
+    "userReportedPriorState": "Powered off",
+    "userAction": "Power on",
+    "independentlyObserved": true,
+    "status": "Rebuilding",
+    "startupCompleted": false
+  },
+  "rootCause": "Unconfirmed; configured local MySQL host returns ENOTFOUND through system, Cloudflare and Google resolvers. Public catalog 503 is observed independently; Vercel internal error not inspected.",
+  "actions": {
+    "newOrder": false,
+    "dbMutation": false,
+    "rolesChanged": false,
+    "configChanged": false,
+    "deployment": false,
+    "realPayment": false,
+    "deviceConnection": false
+  },
+  "sourceSha": "9ae66fdda25eb55a0d65b2e76a08e5e406ec3904"
+}
