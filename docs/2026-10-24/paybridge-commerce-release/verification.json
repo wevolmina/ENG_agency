@@ -1,0 +1,97 @@
+{
+  "sourceSha": "55119ef491c47147f5ca76a581093bb479d18b95",
+  "sourceArchiveSha256": "eeb59737ca668604f89215f37b308396968f4eab6c1588e66fa03e3c4e82571b",
+  "orders": 2,
+  "revenue": 198000,
+  "currency": "KRW",
+  "mockOnly": true,
+  "orderIds": [
+    "ord_085e708de22e97bd03ee036ba624bd4f84ae4a3a",
+    "ord_dfda52ca19973533d0eef25814bce3c858007cc9"
+  ],
+  "tests": {
+    "unit": 19,
+    "mysqlIntegration": true,
+    "firestoreEmulator": true,
+    "uiFixture": {
+      "checkedAt": "2026-10-24T03:59:08.400Z",
+      "method": "local UI fixture; no orders written",
+      "lostResponseRetrySameRequest": true,
+      "pendingBeforeApproval": true,
+      "successMotionOnApprovalOnly": true,
+      "reloadDoesNotReplay": true,
+      "receiptFocus": true,
+      "lateRestoreCannotOverwriteNewReceipt": true,
+      "completedScreenReaderStatus": true,
+      "reducedMotion": true,
+      "mobile390NoOverflow": true,
+      "simulatedCpuSlowdown": 6,
+      "selectionAutomationMs": 1418,
+      "realLowSpecDeviceMeasured": false,
+      "pageErrors": []
+    }
+  },
+  "deployment": {
+    "id": "dpl_3EgohYhp1AtWeeJfGLPTnbkBj5Vh",
+    "state": "READY",
+    "url": "paybridge-mock-dqa756735-wevolmina94-9986.vercel.app",
+    "alias": [
+      "paybridge-mock.vercel.app",
+      "paybridge-mock-wevolmina94-9986.vercel.app"
+    ],
+    "node": "22.x",
+    "sourceSha": "55119ef491c47147f5ca76a581093bb479d18b95"
+  },
+  "hosting": {
+    "checkedAt": "2026-10-24T04:00:54.442Z",
+    "files": [
+      {
+        "path": "index.html",
+        "sha256": "f9f347362f773b7554d24d1df83692b02c097662f799903945eaa354d1c646ea"
+      },
+      {
+        "path": "bedroom/index.html",
+        "sha256": "44b08dbc87a7333ddc988c51128f52bf619f7569bf95983e6ecd582a1e89e682"
+      },
+      {
+        "path": "assets/index-B7_N7cH9.css",
+        "sha256": "89fb2ef7f29c22be111f50a24f70e5ba46c33b81039b756bd6d8c08562b4c66b"
+      },
+      {
+        "path": "assets/index-D5hvkgtU.js",
+        "sha256": "ba586ff12472dcd8eb4eca0d1e8b7c79fe6710d93f8a684fedbf652266fd0c13"
+      }
+    ]
+  },
+  "packageCutover": {
+    "checkedAt": "2026-10-24T04:05:30.651Z",
+    "inactiveRemovedFromCatalog": true,
+    "existingReceiptWhileInactive": true,
+    "existingCheckoutRetryWhileInactive": true,
+    "newOrderBlockVerifiedInIsolatedDatabase": true,
+    "newProductionOrderCreated": false,
+    "publicStateRestored": true
+  },
+  "staffObservation": {
+    "checkedAt": "2026-10-24T04:01:55.795Z",
+    "method": "authenticated Chrome visible DOM",
+    "seller": {
+      "orderId": "ord_dfda52ca19973533d0eef25814bce3c858007cc9",
+      "paymentId": "pay_dfda52ca19973533d0eef25814bce3c858007cc9",
+      "count": 2,
+      "revenue": 198000,
+      "newOrderAnnouncement": "새 모의 주문 1건이 확인되었습니다.",
+      "newOrderLabel": true,
+      "baselineDidNotAnnounce": true,
+      "repeatPollDoesNotAnnounceAgain": true
+    },
+    "adminAfterMotion": {
+      "count": 2,
+      "revenue": 198000,
+      "orderId": "ord_dfda52ca19973533d0eef25814bce3c858007cc9",
+      "pollSeconds": 30
+    }
+  },
+  "legacyDataDeleted": false,
+  "authCredentialsPublished": false
+}
