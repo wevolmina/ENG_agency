@@ -2,12 +2,13 @@ import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 
 export const catalog = {
+  "bedroom-lighting": { name: "편안한 밤 조명 패키지", amount: 99000, merchantId: "studio-mina" },
   starter: { name: "데일리 노트", amount: 12000, merchantId: "studio-mina" },
   planner: { name: "위클리 플래너", amount: 24000, merchantId: "studio-mina" },
   bundle: { name: "워크 라이프 세트", amount: 39000, merchantId: "studio-mina" },
 } as const;
 export const createInput = z.object({
-  productId: z.enum(["starter", "planner", "bundle"]),
+  productId: z.enum(["starter", "planner", "bundle", "bedroom-lighting"]),
   quantity: z.number().int().min(1).max(10),
   requestId: z.string().uuid(),
 }).strict();
@@ -16,10 +17,10 @@ export const paymentSchema = z.object({
   orderId: z.string().regex(/^ord_[a-f0-9]{40}$/),
   customerId: z.string().min(1).max(128),
   merchantId: z.string().regex(/^[a-z0-9-]{1,64}$/),
-  productId: z.enum(["starter", "planner", "bundle"]),
+  productId: z.enum(["starter", "planner", "bundle", "bedroom-lighting"]),
   productName: z.string().min(1).max(200),
   quantity: z.number().int().min(1).max(10),
-  amount: z.number().int().positive().max(390000),
+  amount: z.number().int().positive().max(990000),
   currency: z.literal("KRW"),
   status: z.literal("MOCK_APPROVED"),
   createdAt: z.string().datetime(),

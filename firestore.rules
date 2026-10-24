@@ -1,6 +1,27 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Smartspace intake: immutable {customerId,requestId,productId,quantity}.
+    // Auth UID is the owner; only bedroom-lighting quantity 1..10 is accepted.
+    function isAuthenticated() { return request.auth != null; }
+    function isOwner(uid) { return isAuthenticated() && request.auth.uid == uid; }
+    function validSmartspaceRequest(data) {
+      return data.keys().hasAll(['customerId','requestId','productId','quantity'])
+        && data.keys().hasOnly(['customerId','requestId','productId','quantity'])
+        && data.customerId is string && data.customerId.size() > 0 && data.customerId.size() <= 128
+        && isOwner(data.customerId)
+        && data.requestId is string
+        && data.requestId.matches('[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}')
+        && data.productId == 'bedroom-lighting'
+        && data.quantity is int && data.quantity >= 1 && data.quantity <= 10;
+    }
+    match /smartspace_order_requests/{orderId} {
+      allow get: if isOwner(resource.data.customerId);
+      allow create: if isAuthenticated() && orderId.matches('ord_[a-f0-9]{40}')
+        && validSmartspaceRequest(request.resource.data);
+      // No updates, including owner updates, are allowed for immutable intake.
+      allow list, update, delete: if false;
+    }
     match /order_requests/{orderId} {
       allow get: if request.auth != null && resource.data.customerId == request.auth.uid;
       allow create: if request.auth != null

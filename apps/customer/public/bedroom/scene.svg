@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="scene" id="room" viewBox="0 0 880 680" role="img" aria-labelledby="room-title room-desc">
+<title id="room-title">조명이 꺼진 편안한 침실</title><desc id="room-desc">침대, 협탁의 조명, 커튼, 식물로 꾸민 침실 일러스트. 조명을 켜면 협탁과 침대 뒤에 따뜻한 빛이 퍼집니다.</desc>
+<style>.light-glow{opacity:1}.nightshade{opacity:0}.bulb{fill:#ffe6a0}</style><defs>
+<linearGradient id="wall" x2="0" y2="1"><stop stop-color="#d4d8cd"/><stop offset="1" stop-color="#b9c5b7"/></linearGradient>
+<linearGradient id="floor" x2="0" y2="1"><stop stop-color="#b3aa96"/><stop offset="1" stop-color="#d5c8ac"/></linearGradient>
+<linearGradient id="duvet" x2=".3" y2="1"><stop stop-color="#f2eee1"/><stop offset="1" stop-color="#c6c7b6"/></linearGradient>
+<linearGradient id="headboard" x2="1" y2="1"><stop stop-color="#7d8975"/><stop offset="1" stop-color="#546653"/></linearGradient>
+<radialGradient id="warm"><stop stop-color="#ffe4a5" stop-opacity=".9"/><stop offset=".5" stop-color="#ffd783" stop-opacity=".34"/><stop offset="1" stop-color="#ffdb8a" stop-opacity="0"/></radialGradient>
+<linearGradient id="strip" x2="0" y2="1"><stop stop-color="#ffe6aa" stop-opacity="0"/><stop offset=".85" stop-color="#ffe1a0" stop-opacity=".8"/><stop offset="1" stop-color="#ffe1a0" stop-opacity="0"/></linearGradient>
+<linearGradient id="glass" x2="0" y2="1"><stop stop-color="#809e9b"/><stop offset="1" stop-color="#c6d3c6"/></linearGradient>
+<filter id="shadow"><feGaussianBlur stdDeviation="12"/></filter>
+</defs>
+<rect width="880" height="680" fill="url(#wall)"/>
+<path d="M0 0H157V424L0 495Z" fill="#a8b6ac"/><path d="M157 424H880V680H0V495Z" fill="url(#floor)"/>
+<path d="M157 424L0 680M300 424L190 680M445 424L390 680M590 424L590 680M735 424L790 680M0 540H880M0 608H880" stroke="#a59e8a" stroke-width="2" opacity=".4"/>
+<path d="M158 423H880" stroke="#e1e4d8" stroke-width="8"/>
+<rect x="38" y="105" width="96" height="250" fill="#637d75"/><rect x="46" y="113" width="80" height="234" fill="url(#glass)"/><path d="M86 113V347M46 232H126" stroke="#e2e6d8" stroke-width="7"/>
+<path d="M0 76H45L32 379L0 391Z" fill="#dbded1"/><path d="M13 78L8 384M27 78L20 381" stroke="#bfc6b8" stroke-width="5"/>
+<path d="M122 76H176L191 397L129 372Z" fill="#e4e4d6"/><path d="M136 78L145 379M151 78L165 387M166 78L182 393" stroke="#c5cbbb" stroke-width="6"/>
+<path d="M0 76H176" stroke="#4b6055" stroke-width="5"/>
+<rect x="420" y="105" width="112" height="139" rx="2" fill="#6c6f57"/><rect x="429" y="114" width="94" height="121" fill="#eae2cf"/><path d="M440 218L477 135L510 218Z" fill="#a5af94"/><circle cx="493" cy="145" r="15" fill="#caad74"/><path d="M440 202Q474 180 511 211V224H440Z" fill="#6e8068"/>
+<ellipse cx="478" cy="556" rx="239" ry="50" fill="#6d725c" opacity=".23" filter="url(#shadow)"/>
+<path d="M253 472L627 460L757 609L269 640L174 559Z" fill="#d5d9c9"/><path d="M265 485L621 476L733 600L275 626L196 556Z" fill="none" stroke="#b7bfac" stroke-width="3"/>
+<rect x="302" y="292" width="331" height="168" rx="49" fill="url(#headboard)"/><path d="M322 320V432M346 304V438M370 298V440M394 296V441M418 295V444M442 295V445M466 295V446M490 295V448M514 295V448M538 295V448M562 299V448M586 305V448M610 321V448" stroke="#a1ad91" opacity=".3" stroke-width="3"/>
+<path d="M309 427L620 427L679 552L300 576L271 537Z" fill="#716c54"/><path d="M302 562V591M656 551V575" stroke="#544e3d" stroke-width="11"/>
+<path d="M309 404L613 404L675 528Q679 540 660 548L309 566Q282 565 281 544L286 437Z" fill="#e1dfd0"/>
+<path d="M309 416L611 416L670 518Q683 543 652 545L312 563Q288 563 286 543Z" fill="url(#duvet)"/>
+<path d="M313 436Q463 455 627 441M304 489Q452 509 651 496M322 452L329 542M593 453L625 534" fill="none" stroke="#bfc3b2" stroke-width="3" opacity=".55"/>
+<path d="M329 376Q332 369 346 370L444 375Q459 378 457 389L450 423Q448 433 434 429L331 423Q322 421 324 409Z" fill="#efecde"/><path d="M472 377Q475 369 486 372L582 378Q593 379 596 390L608 422Q609 433 597 431L486 427Q474 426 473 416Z" fill="#ece9d9"/>
+<path d="M312 484Q447 508 642 478L672 531Q500 559 316 551Z" fill="#8d9a81"/><path d="M330 490L333 551M347 494L351 553M365 497L370 554M384 499L388 554M403 502L408 555M425 503L430 555M449 502L455 554M477 501L484 552M507 498L516 551M538 494L548 547M569 490L580 544M602 486L615 541M630 483L647 537" stroke="#c2cbb1" stroke-width="2" opacity=".65"/>
+<path d="M190 419L264 414L278 436L196 443Z" fill="#8b7457"/><path d="M196 443L278 436V487L196 497Z" fill="#a18c6b"/><path d="M202 464L272 457" stroke="#786449"/><circle cx="236" cy="470" r="3" fill="#dcd0ad"/><path d="M204 494V515M270 485V505" stroke="#6e6049" stroke-width="7"/>
+<ellipse cx="235" cy="418" rx="20" ry="5" fill="#696647"/><path d="M235 418V367" stroke="#87794f" stroke-width="6"/><path class="bulb" d="M215 336H255L269 377Q235 386 201 377Z"/><path d="M215 336Q235 329 255 336" fill="#dcd3b6"/><path d="M206 373Q235 380 264 373" fill="none" stroke="#a39777" stroke-width="2"/>
+<rect x="691" y="422" width="80" height="78" rx="4" fill="#b2a48a"/><path d="M704 437H757M704 450H757M704 463H757M704 476H757" stroke="#95886f" stroke-width="2"/>
+<path d="M730 423Q718 341 752 288M730 423Q748 364 704 316M731 405Q770 370 790 334" fill="none" stroke="#546a4c" stroke-width="5"/>
+<path d="M749 307Q713 268 765 246Q780 282 749 307M716 344Q672 345 677 296Q718 299 716 344M741 372Q777 319 797 344Q793 377 741 372M732 389Q686 392 689 357Q719 351 732 389" fill="#607e57"/><path d="M755 294Q765 263 765 253M712 334L682 302M754 363L790 348" stroke="#91a27a" fill="none" stroke-width="2"/>
+<rect class="nightshade" width="880" height="680" fill="#183d43"/>
+<g class="light-glow" aria-hidden="true"><ellipse cx="236" cy="365" rx="162" ry="171" fill="url(#warm)"/><path d="M289 302Q470 242 645 302V336Q465 289 289 336Z" fill="url(#strip)"/><path d="M309 302Q467 278 626 301" fill="none" stroke="#ffe9b7" stroke-width="3" opacity=".85"/><ellipse cx="236" cy="421" rx="65" ry="20" fill="url(#warm)"/></g>
+</svg>

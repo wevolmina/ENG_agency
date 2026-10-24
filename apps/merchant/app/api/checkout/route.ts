@@ -18,5 +18,5 @@ export async function POST(request:Request){
   if(previous)return Response.json(previous,{headers});
   await recordRequest(user.token,user.uid,input.data);
   return Response.json(await confirmOrder(pool,user.uid,input.data),{headers});
- }catch(error){const message=error instanceof Error?error.message:"UNAVAILABLE";console.error("checkout_failed",{requestId:input.data.requestId,code:message==="REQUEST_CONFLICT"?message:"DEPENDENCY_UNAVAILABLE"});return Response.json({error:message==="REQUEST_CONFLICT"?message:"CHECKOUT_UNAVAILABLE"},{status:message==="REQUEST_CONFLICT"?409:503,headers});}
+ }catch(error){const message=error instanceof Error?error.message:"UNAVAILABLE";const conflict=["REQUEST_CONFLICT","PACKAGE_UNAVAILABLE","PACKAGE_CHANGED"].includes(message);console.error("checkout_failed",{requestId:input.data.requestId,code:conflict?message:"DEPENDENCY_UNAVAILABLE"});return Response.json({error:conflict?message:"CHECKOUT_UNAVAILABLE"},{status:conflict?409:503,headers});}
 }

@@ -7,15 +7,15 @@ import {confirmOrder,existingOrder,customerReceipt} from "../../apps/merchant/li
 test("checkout transaction: parallel retry, conflict, receipt isolation, rollback",{skip:process.env.RUN_MYSQL_INTEGRATION!=="true"},async()=>{
  assert.match(process.env.MYSQL_DATABASE||"",/_test$/);
  const pool=getPool(),uid="checkout-"+crypto.randomUUID();
- const input={productId:"starter" as const,quantity:2,requestId:crypto.randomUUID()};
+ const input={productId:"bedroom-lighting" as const,quantity:2,requestId:crypto.randomUUID()};
  try{
-  for(const file of ["001-payments.sql","002-orders.sql"]){for(const sql of (await readFile(new URL("../../database/"+file,import.meta.url),"utf8")).split(/;\s*(?:\n|$)/).filter(s=>s.trim()))await pool.query(sql);}
+  for(const file of ["smartspace-v2.sql"]){for(const sql of (await readFile(new URL("../../database/"+file,import.meta.url),"utf8")).split(/;\s*(?:\n|$)/).filter(s=>s.trim()))await pool.query(sql);}
   const [a,b]=await Promise.all([confirmOrder(pool,uid,input),confirmOrder(pool,uid,input)]);
-  assert.equal(a.paymentId,b.paymentId);assert.equal(a.createdAt,b.createdAt);assert.equal(a.amount,24000);
+  assert.equal(a.paymentId,b.paymentId);assert.equal(a.createdAt,b.createdAt);assert.equal(a.amount,198000);
   assert.equal((await existingOrder(pool,uid,input))?.paymentId,a.paymentId);
   await assert.rejects(confirmOrder(pool,uid,{...input,quantity:3}),/REQUEST_CONFLICT/);
   assert.equal(await customerReceipt(pool,uid+"-other",a.paymentId),null);
-  assert.equal((await customerReceipt(pool,uid,a.paymentId))?.amount,24000);
+  assert.equal((await customerReceipt(pool,uid,a.paymentId))?.amount,198000);
   const connection=await pool.getConnection();connection.release();
   const faulty={getConnection:async()=>{const c=await pool.getConnection();return new Proxy(c,{get(target,key){if(key==="execute")return (sql:string,args:unknown[])=>{if(sql.startsWith("INSERT INTO payments"))throw new Error("INJECTED_FAILURE");return target.execute(sql,args);};const value=Reflect.get(target,key);return typeof value==="function"?value.bind(target):value;}});}} as unknown as Pool;
   const failed={...input,requestId:crypto.randomUUID()};

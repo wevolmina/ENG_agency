@@ -27,6 +27,10 @@ export async function confirmOrder(pool:Pool,uid:string,input:OrderInput){
   if(orders[0]?.request_hash!==hash)throw new Error("REQUEST_CONFLICT");
   const [old]=await c.execute<RowDataPacket[]>("SELECT * FROM payments WHERE payment_id=?",[p.paymentId]);
   if(old.length){await c.commit();return receipt(old[0]);}
+  const [packages]=await c.execute<RowDataPacket[]>("SELECT name,unit_price,merchant_id,active FROM packages WHERE product_id=? FOR SHARE",[p.productId]);
+  const product=packages[0];
+  if(!product||!product.active)throw new Error("PACKAGE_UNAVAILABLE");
+  if(Number(product.unit_price)*p.quantity!==p.amount||product.merchant_id!==p.merchantId||product.name!==p.productName)throw new Error("PACKAGE_CHANGED");
   await c.execute("INSERT INTO order_items (order_id,line_number,product_id,product_name,unit_price,quantity) VALUES (?,1,?,?,?,?)",[p.orderId,p.productId,p.productName,p.amount/p.quantity,p.quantity]);
   await c.execute("INSERT INTO payments (payment_id,order_id,customer_id,merchant_id,product_id,product_name,quantity,amount,currency,status,created_at,payload_hash) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",[p.paymentId,p.orderId,uid,p.merchantId,p.productId,p.productName,p.quantity,p.amount,p.currency,p.status,time,payloadHash(p)]);
   await c.commit();return p;
@@ -35,7 +39,7 @@ export async function confirmOrder(pool:Pool,uid:string,input:OrderInput){
 export async function recordRequest(token:string,uid:string,input:OrderInput){
  const project=process.env.FIREBASE_PROJECT_ID;if(!project)throw new Error("FIREBASE_CONFIG_MISSING");
  const id=buildPayment(uid,input).orderId;
- const url=`https://firestore.googleapis.com/v1/projects/${encodeURIComponent(project)}/databases/(default)/documents/order_requests/${id}`;
+ const url=`https://firestore.googleapis.com/v1/projects/${encodeURIComponent(project)}/databases/(default)/documents/smartspace_order_requests/${id}`;
  const headers={Authorization:`Bearer ${token}`,"Content-Type":"application/json"};
  const body={fields:{customerId:{stringValue:uid},requestId:{stringValue:input.requestId},productId:{stringValue:input.productId},quantity:{integerValue:String(input.quantity)}}};
  const result=await fetch(url+"?currentDocument.exists=false",{method:"PATCH",headers,body:JSON.stringify(body),signal:AbortSignal.timeout(10000),cache:"no-store"});
