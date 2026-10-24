@@ -33,3 +33,9 @@ Aiven 상태는 사용자가 Running/READY로 확인했습니다. 현재 Host �
 **DNS·DB·상품 API 복구, 기존 99,000원 주문 일치.** 직원 화면 대조는 아직 미확인.
 
 [최신 HTML](work-map-20261024172349-db-recovered.html) · [결과 Markdown](result-20261024172349-db-recovered.md) · [검증 JSON](verification-20261024172349-db-recovered.json)
+
+## 최신 복구 확인 · 2026-10-24T08:22:28.420Z
+
+**DNS·DB·상품 API 복구, 기존 99,000원 주문 일치.** 두 직원 화면도 대조 완료.
+
+[최신 HTML](work-map-20261024172555-db-recovered.html) · [결과 Markdown](result-20261024172555-db-recovered.md) · [검증 JSON](verification-20261024172555-db-recovered.json)

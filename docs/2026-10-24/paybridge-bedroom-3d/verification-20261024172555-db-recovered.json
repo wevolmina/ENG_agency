@@ -1,0 +1,83 @@
+{
+  "checkedAt": "2026-10-24T08:25:55.959Z",
+  "userReported": "MySQL powered off then powered on",
+  "aivenObserved": "Rebuilding before recovery",
+  "health": {
+    "checkedAt": "2026-10-24T08:22:28.420Z",
+    "dns": [
+      {
+        "resolver": "system",
+        "resolved": true
+      },
+      {
+        "resolver": "cloudflare",
+        "resolved": true
+      },
+      {
+        "resolver": "google",
+        "resolved": true
+      }
+    ],
+    "http": [
+      {
+        "path": "/api/catalog",
+        "status": 200
+      },
+      {
+        "path": "/",
+        "status": 200
+      },
+      {
+        "path": "/admin",
+        "status": 200
+      }
+    ]
+  },
+  "db": {
+    "checkedAt": "2026-10-24T08:22:36.694Z",
+    "order": {
+      "order_id": "ord_9aa48caf8745af43b319ea0d7b7340d5e6bbdab8",
+      "amount": "99000.00",
+      "status": "MOCK_APPROVED",
+      "payment_id": "pay_9aa48caf8745af43b319ea0d7b7340d5e6bbdab8",
+      "quantity": 1
+    },
+    "totals": {
+      "count": 3,
+      "revenue": 297000
+    }
+  },
+  "staff": {
+    "checkedAt": "2026-10-24T08:25:55.822Z",
+    "seller": true,
+    "admin": true,
+    "adminOrderId": "ord_9aa48caf8745af43b319ea0d7b7340d5e6bbdab8",
+    "adminPaymentId": "pay_9aa48caf8745af43b319ea0d7b7340d5e6bbdab8",
+    "adminAmount": 99000,
+    "adminQuantity": 1,
+    "adminStatus": "모의 승인",
+    "adminTotals": {
+      "count": 3,
+      "revenue": 297000
+    },
+    "reason": "Both authenticated screens directly observed and matched existing order",
+    "sellerOrderId": "ord_9aa48caf8745af43b319ea0d7b7340d5e6bbdab8",
+    "sellerPaymentId": "pay_9aa48caf8745af43b319ea0d7b7340d5e6bbdab8",
+    "sellerAmount": 99000,
+    "sellerQuantity": 1,
+    "sellerStatus": "모의 승인",
+    "sellerTotals": {
+      "count": 3,
+      "revenue": 297000
+    }
+  },
+  "actions": {
+    "newOrder": false,
+    "dbMutation": false,
+    "rolesChanged": false,
+    "environmentChanged": false,
+    "deployment": false,
+    "realPayment": false,
+    "deviceConnection": false
+  }
+}
