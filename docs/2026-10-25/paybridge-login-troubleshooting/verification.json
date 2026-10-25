@@ -21,7 +21,7 @@
   ],
   "productionGoogleFailureReproduced": true,
   "exactProductionGoogleCode": "auth/unauthorized-domain",
-  "providerAuthenticationCompleted": false,
+  "providerAuthenticationCompleted": true,
   "providerSettingsChanged": true,
   "productionRoleWrites": false,
   "deploymentStatus": "success",
@@ -34,7 +34,7 @@
   "kakaoConsentSubmitted": true,
   "naverLiveAuthenticationTested": false,
   "deployments": {
-    "vercel": "https://vercel.com/wevolmina94-9986/paybridge-mock/8o61xUWZHeL7fDtBzWEo7nF3rmFF",
+    "vercel": "https://vercel.com/wevolmina94-9986/paybridge-mock/G6qe16SdBVRfAbEFZ8LGbRoqdvvY",
     "cloudflareRun": 40198480885,
     "firebaseRun": 40198480903,
     "mainChecksRun": 40198480912,
@@ -42,14 +42,21 @@
     "allSucceeded": true
   },
   "sellerDomainSaved": true,
-  "kakaoTokenExchangeObserved": "SOCIAL_KAKAO_KOE010",
+  "kakaoTokenExchangeObserved": "success after user secret update and redeploy",
   "sellerGooglePassedDomainCheck": true,
   "sellerGoogleDeviceVerificationPending": false,
   "naverUiHidden": true,
   "credentialValuesReadOrChangedByAgent": false,
   "sellerGoogleAuthenticationCompleted": true,
   "sellerDashboardReadConfirmed": true,
-  "kakaoAuthenticationCompleted": false,
+  "kakaoAuthenticationCompleted": true,
   "naverHiddenAcrossAllThreeSitesTested": true,
-  "remainingAction": "User must enter the matching Kakao Client Secret into Vercel KAKAO_CLIENT_SECRET; then redeploy and retest."
+  "remainingAction": "No remaining blocker for verified customer Kakao login. Seller and admin Kakao live authentication and role-specific screens remain unverified; staff roles require master approval.",
+  "kakaoPreviousTokenExchangeError": "SOCIAL_KAKAO_KOE010",
+  "kakaoVerifiedFrontend": "customer",
+  "kakaoSellerAndAdminLiveAuthenticationTested": false,
+  "kakaoCustomerSignedInUiConfirmed": true,
+  "userReportedKakaoSecretUpdated": true,
+  "userReportedRedeployed": true,
+  "verifiedDeploymentSourceCommit": "eb1e0065eeb569c647e74c8d342acfd7c65e95be"
 }
