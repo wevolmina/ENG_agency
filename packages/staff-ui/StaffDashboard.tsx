@@ -9,6 +9,7 @@ import {
   type User,
 } from "firebase/auth";
 import SocialLogin from "./SocialLogin";
+import StaffAccess from "./StaffAccess";
 import "./social-login.css";
 import { unseenOrderIds } from "./new-orders";
 type Package = {
@@ -87,6 +88,7 @@ export default function StaffDashboard({
     [search, setSearch] = useState(""),
     [revision, setRevision] = useState(0);
   const [socialBusy, setSocialBusy] = useState(false);
+  const [accessBusy, setAccessBusy] = useState(false);
   const [packageFilter, setPackageFilter] = useState("all"),
     [pendingPackage, setPendingPackage] = useState<string | null>(null);
   const focusedPackage = useRef<string | null>(null);
@@ -358,7 +360,7 @@ export default function StaffDashboard({
             </div>
             {user && (
               <div className="actions">
-                <button onClick={() => void logout()}>로그아웃</button>
+                <button disabled={busy || accessBusy} onClick={() => void logout()}>로그아웃</button>
               </div>
             )}
           </div>
@@ -404,6 +406,11 @@ export default function StaffDashboard({
             </section>
           ) : (
             <>
+              <label className="staff-account-id">내 계정 고유번호(UID)
+                <input readOnly value={user.uid} onFocus={e=>e.target.select()}/>
+              </label>
+              {admin && <StaffAccess auth={clientAuth()} user={user} apiOrigin={apiOrigin}
+                disabled={busy} onBusyChange={setAccessBusy} onChanged={()=>setRevision(v=>v+1)}/>}
               <div className="status-line">
                 <span>
                   {data ? "마지막으로 확인한 모의 거래" : "권한·DB 확인 중"}

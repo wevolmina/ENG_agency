@@ -1,0 +1,38 @@
+{
+  "dateKST": "2026-10-25",
+  "unitTestsPassed": 63,
+  "runtime": "Node.js 22",
+  "builds": [
+    "customer",
+    "merchant",
+    "admin"
+  ],
+  "masterBrowser": {
+    "method": "Isolated Auth/API fixtures; no real setup password or production role writes",
+    "setupPasswordCleared": true,
+    "setupLocksAfterSuccess": true,
+    "sellerOptIn": true,
+    "rootAdminProtected": true,
+    "targetAndRoleChangeResetReview": true,
+    "approveRevokeAndAudit": true,
+    "staleLoginCannotWrite": true,
+    "ordinaryAccountCannotManage": true,
+    "pageErrors": [],
+    "widths": [
+      320,
+      390,
+      768,
+      1440
+    ]
+  },
+  "regression": [
+    "social-login",
+    "store-motion-ux",
+    "admin-hosting"
+  ],
+  "productionRoleChanges": false,
+  "productionSetupPasswordSaved": false,
+  "realGoogleEnrollmentTested": false,
+  "realMySQLInitializationTested": false,
+  "deploymentStatus": "pending"
+}
