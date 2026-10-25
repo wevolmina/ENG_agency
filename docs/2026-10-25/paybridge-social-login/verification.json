@@ -1,0 +1,58 @@
+{
+  "environment": "Node.js 22.23.4; Linux Chromium; intercepted Auth/provider/business responses; no live provider sign-in or DB writes",
+  "unitTests": 42,
+  "builds": [
+    "customer",
+    "merchant",
+    "admin"
+  ],
+  "social": {
+    "method": "Local apps with intercepted provider/Auth/business data; no production writes",
+    "customerLoginLogoutAndConsent": true,
+    "wrongNonceIgnored": true,
+    "checkoutLockedDuringLogin": true,
+    "adminSocialLoginStillDeniedWithoutMembership": true,
+    "emailFallbackAfterLogout": true,
+    "sellerUnchanged": true,
+    "anonymousOrderHistoryProtected": true,
+    "unconfiguredProvidersDisabled": true,
+    "blockedPopupRecovery": true,
+    "pageErrors": [],
+    "widths": [
+      320,
+      390,
+      768,
+      1440
+    ]
+  },
+  "storeRegression": {
+    "method": "Local store with intercepted Auth/catalog/checkout/receipt; no DB writes",
+    "spaceShortcuts": 3,
+    "emptyGuidance": true,
+    "total277000": true,
+    "consentResets": true,
+    "widthsWithoutOverflow": [
+      320,
+      390,
+      768,
+      1440
+    ],
+    "reducedMotion": true,
+    "retryKeepsRequest": true,
+    "receiptFocus": true,
+    "restoreDoesNotReplay": true,
+    "pageErrors": []
+  },
+  "staffRegression": {
+    "method": "Two separate local origins, intercepted Auth/data APIs; real local CORS/unauthorized endpoint checks",
+    "preflight": true,
+    "missingTokenDenied": true,
+    "wrongOriginDenied": true,
+    "legacyRedirect": true,
+    "separateLoginSessions": true,
+    "adminBearerWithoutCookies": true,
+    "adminWriteAndReadback": true,
+    "separateLogout": true,
+    "pageErrors": []
+  }
+}

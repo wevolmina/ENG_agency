@@ -5,7 +5,9 @@
   "exports": {
     ".": "./StaffDashboard.tsx",
     "./style.css": "./style.css",
-    "./dashboard-ux.css": "./dashboard-ux.css"
+    "./dashboard-ux.css": "./dashboard-ux.css",
+    "./SocialLogin": "./SocialLogin.tsx",
+    "./social-login.css": "./social-login.css"
   },
   "peerDependencies": {
     "react": "^19.0.0",

@@ -1,3 +1,5 @@
+> 고객·관리자 구글/카카오/네이버 간편로그인: [연결 설정과 검증 범위](docs/2026-10-25/paybridge-social-login/README.md). 공급자 콘솔 설정 전에는 해당 버튼을 연결 준비 중으로 표시합니다.
+
 > 2026-10-25 관리자 분리: 관리자 화면은 `apps/admin`의 Cloudflare 전용 앱으로 이동했습니다. 판매자·API는 Vercel에 유지합니다. [자동 배포 안내서](docs/AUTO_DEPLOYMENT.md)와 [구조·검증 기록](CLOUDFLARE_ADMIN.md)을 확인하세요. 관리자·판매자 운영 배포를 확인했습니다. 고객 Firebase도 서비스 계정 권한 보완 후 자동 배포에 성공했습니다. [최종 배포 기록](docs/DEPLOYMENT_PROGRESS_2026-10-25.md)을 확인하세요.
 
 # Paybridge 모의 결제

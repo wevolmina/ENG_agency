@@ -63,6 +63,7 @@ const products = [
         "access-control-allow-headers": "*",
         "access-control-allow-methods": "GET,POST,OPTIONS",
       };
+    await context.route("**/api/auth/social/config", r => r.fulfill({headers: {"access-control-allow-origin": "*"}, json: {google:false,kakao:false,naver:false}}));
     await context.route("**/identitytoolkit.googleapis.com/**", (r) =>
       r.fulfill({
         headers: cors,

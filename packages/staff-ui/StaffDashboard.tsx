@@ -8,6 +8,8 @@ import {
   signOut,
   type User,
 } from "firebase/auth";
+import SocialLogin from "./SocialLogin";
+import "./social-login.css";
 import { unseenOrderIds } from "./new-orders";
 type Package = {
   id: string;
@@ -84,6 +86,7 @@ export default function StaffDashboard({
     [busy, setBusy] = useState(false),
     [search, setSearch] = useState(""),
     [revision, setRevision] = useState(0);
+  const [socialBusy, setSocialBusy] = useState(false);
   const [packageFilter, setPackageFilter] = useState("all"),
     [pendingPackage, setPendingPackage] = useState<string | null>(null);
   const focusedPackage = useRef<string | null>(null);
@@ -232,6 +235,7 @@ export default function StaffDashboard({
   }, [user, admin, revision, apiOrigin]);
   async function login(event: React.FormEvent) {
     event.preventDefault();
+    if (socialBusy || busy || !configured) return;
     setBusy(true);
     setError("");
     try {
@@ -365,13 +369,18 @@ export default function StaffDashboard({
             <section className="login card">
               <p className="eyebrow">AUTHORIZED STAFF ONLY</p>
               <h2>{title} 로그인</h2>
-              <p>기존 이메일 계정을 사용합니다. 서버에서 역할을 확인합니다.</p>
+              <p>{admin ? "간편로그인 또는 기존 이메일 계정을 사용하세요. 서버에서 관리자 역할을 확인합니다." : "기존 이메일 계정을 사용합니다. 서버에서 역할을 확인합니다."}</p>
+              {admin && <><SocialLogin auth={configured ? clientAuth() : null} apiOrigin={apiOrigin || "https://paybridge-mock.vercel.app"}
+                disabled={busy} onBusyChange={setSocialBusy}/>
+                <p className="social-divider">또는 이메일로 로그인</p>
+                <p className="social-help">간편로그인만으로 관리자 권한이 생기지 않습니다. 등록된 관리자 계정만 자료를 볼 수 있습니다.</p></>}
               <form onSubmit={login}>
                 <label>
                   이메일
                   <input
                     type="email"
                     autoComplete="username"
+                    disabled={busy || socialBusy}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -382,12 +391,13 @@ export default function StaffDashboard({
                   <input
                     type="password"
                     autoComplete="current-password"
+                    disabled={busy || socialBusy}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
                 </label>
-                <button className="primary" disabled={!configured || busy}>
+                <button className="primary" disabled={!configured || busy || socialBusy}>
                   {busy ? "확인 중…" : "로그인"}
                 </button>
               </form>
