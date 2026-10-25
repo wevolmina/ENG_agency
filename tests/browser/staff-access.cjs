@@ -44,7 +44,7 @@ const cors={"access-control-allow-origin":"*","access-control-allow-headers":"*"
   const page=await ctx.newPage();page.on("pageerror",e=>errors.push(e.message));await page.goto(admin);
   await page.getByRole("textbox",{name:"이메일",exact:true}).fill("owner@example.invalid");
   await page.getByLabel("비밀번호",{exact:true}).fill("fixture-login-password");await page.getByRole("button",{name:"로그인",exact:true}).click();
-  await page.getByRole("link",{name:"계정·권한",exact:true}).click();
+  await page.locator('nav a[href="#accounts"]').click();
   await page.locator(".staff-account-id").waitFor();
   return {ctx,page,writes};
  }
@@ -112,7 +112,10 @@ const cors={"access-control-allow-origin":"*","access-control-allow-headers":"*"
   assert.equal(await page.getByLabel("최초 설정 비밀번호",{exact:true}).isEnabled(),false);
   assert.equal(await page.getByRole("button",{name:"마스터 등록",exact:true}).isEnabled(),false);
   assert.equal(writes.length,0);checks.staleLoginCannotWrite=true;await ctx.close();
-  ({ctx,page}=await context({eligible:false}));await page.getByText(/계정 승인은 등록된 마스터 구글 계정/).waitFor();
+  ({ctx,page}=await context({eligible:false}));await page.getByText(/이 계정에는 다른 계정을 승인하는 기능이 없습니다/).waitFor();
+  assert.equal(await page.getByRole("heading",{name:"계정 승인",exact:true}).count(),0);
+  assert.equal(await page.getByRole("link",{name:"계정·권한",exact:true}).count(),0);
+  assert.equal(await page.getByRole("heading",{name:"이용 권한 안내",exact:true}).isVisible(),true);
   assert.equal(await page.getByRole("heading",{name:"최초 마스터 계정 등록",exact:true}).count(),0);
   assert.equal(await page.getByLabel("승인할 계정 고유번호(UID)",{exact:true}).count(),0);checks.ordinaryAccountCannotManage=true;await ctx.close();
   assert.deepEqual(errors,[]);checks.pageErrors=errors;checks.widths=[320,390,768,1440];

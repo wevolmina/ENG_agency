@@ -1,6 +1,9 @@
 import {createHash, createHmac, randomBytes, timingSafeEqual} from "node:crypto";
 import {z} from "zod";
 
+class SocialFlowError extends Error {
+  constructor(public code:"SOCIAL_TOKEN_EXCHANGE_FAILED"|"SOCIAL_PROFILE_FAILED") {super(code)}
+}
 export type SocialEnv = Record<string, string | undefined>;
 export type SocialProvider = "kakao" | "naver";
 const providerSchema = z.enum(["kakao", "naver"]);
@@ -132,21 +135,21 @@ export async function exchangeSocialCode(provider: SocialProvider, code: string,
     ? "https://kauth.kakao.com/oauth/token" : "https://nid.naver.com/oauth2.0/token",
     {method: "POST", headers: {"Content-Type": "application/x-www-form-urlencoded"},
       body, cache: "no-store", redirect: "error", signal: AbortSignal.timeout(8000)});
-  if (!response.ok) throw Error("SOCIAL_PROVIDER_REJECTED");
+  if (!response.ok) throw new SocialFlowError("SOCIAL_TOKEN_EXCHANGE_FAILED");
   const token = z.object({access_token: z.string().min(1).max(8192)}).safeParse(await response.json());
-  if (!token.success) throw Error("SOCIAL_PROVIDER_REJECTED");
+  if (!token.success) throw new SocialFlowError("SOCIAL_TOKEN_EXCHANGE_FAILED");
   const profileResponse = await fetcher(provider === "kakao"
     ? "https://kapi.kakao.com/v2/user/me" : "https://openapi.naver.com/v1/nid/me",
     {headers: {Authorization: "Bearer " + token.data.access_token},
       cache: "no-store", redirect: "error", signal: AbortSignal.timeout(8000)});
-  if (!profileResponse.ok) throw Error("SOCIAL_PROVIDER_REJECTED");
+  if (!profileResponse.ok) throw new SocialFlowError("SOCIAL_PROFILE_FAILED");
   const profile = await profileResponse.json();
   const kakao = z.object({id: z.number().int().positive().safe()}).safeParse(profile);
   const naver = z.object({resultcode: z.literal("00"),
     response: z.object({id: z.string().min(1).max(256)})}).safeParse(profile);
   const subject = provider === "kakao" ? (kakao.success ? String(kakao.data.id) : null)
     : (naver.success ? naver.data.response.id : null);
-  if (!subject) throw Error("SOCIAL_PROVIDER_REJECTED");
+  if (!subject) throw new SocialFlowError("SOCIAL_PROFILE_FAILED");
   return socialUid(provider, cfg.id, subject);
 }
 function popupResponse(state: SocialState, result: {token: string} | {error: string}, env: SocialEnv) {
@@ -185,17 +188,22 @@ export async function finishSocialLogin(request: Request, providerValue: string,
     return response;
   }
   const code = one(url, "code");
-  if (!code || code.length > 4096 || url.searchParams.has("error")) {
-    return popupResponse(state, {error: "SOCIAL_CANCELLED"}, env);
+  if (url.searchParams.has("error")) {
+    return popupResponse(state, {error: one(url,"error")==="access_denied" ? "SOCIAL_CANCELLED" : "SOCIAL_PROVIDER_CONFIG_ERROR"}, env);
   }
+  if (!code || code.length > 4096) return popupResponse(state,{error:"SOCIAL_LOGIN_FAILED"},env);
   if (!socialConfiguration(env)[p]) return popupResponse(state, {error: "SOCIAL_NOT_CONFIGURED"}, env);
+  let uid: string;
+  try { uid = await exchangeSocialCode(p, code, state.state, env, fetcher); }
+  catch (error) {
+    // Only a fixed stage code leaves the server; never provider bodies or credentials.
+    return popupResponse(state, {error: error instanceof SocialFlowError ? error.code : "SOCIAL_LOGIN_FAILED"}, env);
+  }
   try {
-    const uid = await exchangeSocialCode(p, code, state.state, env, fetcher);
-    // These claims identify the provider only; staff authorization still comes from DB membership.
-    const token = await mint(uid, {social_provider: p});
-    return popupResponse(state, {token}, env);
+    // Claims identify the provider only; staff access still requires an existing DB membership.
+    const token = await mint(uid, {social_provider:p});
+    return popupResponse(state,{token},env);
   } catch {
-    // Never echo provider bodies, authorization codes, access tokens or Firebase tokens to logs/errors.
-    return popupResponse(state, {error: "SOCIAL_LOGIN_FAILED"}, env);
+    return popupResponse(state,{error:"SOCIAL_FIREBASE_TOKEN_FAILED"},env);
   }
 }

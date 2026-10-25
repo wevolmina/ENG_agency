@@ -22,15 +22,15 @@ const messages:Record<string,string>={
  MASTER_ADMIN_PROTECTED:"마스터 계정의 관리자 권한은 이 화면에서 해제할 수 없습니다.",
  ACCESS_VERSION_CONFLICT:"다른 변경이 먼저 반영되었습니다. 계정 정보를 다시 확인해 주세요.",INVALID_INPUT:"입력한 계정 고유번호와 선택 항목을 확인해 주세요.",
 };
-type Props={auth:Auth;user:User;apiOrigin:string;disabled?:boolean;onChanged:()=>void;onBusyChange:(busy:boolean)=>void};
-export default function StaffAccess({auth,user,apiOrigin,disabled=false,onChanged,onBusyChange}:Props){
+type Props={auth:Auth;user:User;apiOrigin:string;disabled?:boolean;onChanged:()=>void;onBusyChange:(busy:boolean)=>void;onManagementChange?:(allowed:boolean)=>void};
+export default function StaffAccess({auth,user,apiOrigin,disabled=false,onChanged,onBusyChange,onManagementChange}:Props){
  const [status,setStatus]=useState<Status|null>(null),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false);
  const [error,setError]=useState(""),[notice,setNotice]=useState(""),[password,setPassword]=useState("");
  const [includeMerchant,setIncludeMerchant]=useState(false),[target,setTarget]=useState(""),[account,setAccount]=useState<Account|null>(null);
  const [role,setRole]=useState<Role>("merchant"),[confirmed,setConfirmed]=useState(false),[revoke,setRevoke]=useState<Member|null>(null);
- const live=useRef(false),working=useRef(false),generation=useRef(0),callbacks=useRef({onChanged,onBusyChange});
+ const live=useRef(false),working=useRef(false),generation=useRef(0),callbacks=useRef({onChanged,onBusyChange,onManagementChange});
  const controllers=useRef(new Set<AbortController>());
- callbacks.current={onChanged,onBusyChange};
+ callbacks.current={onChanged,onBusyChange,onManagementChange};
  const endpoint=apiOrigin.replace(/\/$/,"")+"/api/admin/access";
  async function request(body?:unknown){
   const seq=generation.current;
@@ -49,10 +49,10 @@ export default function StaffAccess({auth,user,apiOrigin,disabled=false,onChange
   if(!response.ok)throw Error(data.error||"MASTER_UNAVAILABLE");return data;
   }finally{clearTimeout(timeout);controllers.current.delete(controller)}
  }
- async function refresh(){setStatus(await request())}
+ async function refresh(){const result:Status=await request();setStatus(result);callbacks.current.onManagementChange?.(result.isMaster||result.canSetup)}
  useEffect(()=>{
   live.current=true;generation.current++;const seq=generation.current;
-  setStatus(null);setPassword("");setAccount(null);setTarget("");setError("");setNotice("");setLoading(true);setBusy(false);
+  setStatus(null);callbacks.current.onManagementChange?.(false);setPassword("");setAccount(null);setTarget("");setError("");setNotice("");setLoading(true);setBusy(false);
   void refresh().catch(e=>{if(live.current&&seq===generation.current&&e.message!=="STALE_ACCOUNT")setError(messages[e.message]||"계정 승인 정보를 확인하지 못했습니다. 다시 확인해 주세요.")})
    .finally(()=>{if(live.current&&seq===generation.current)setLoading(false)});
   return()=>{live.current=false;generation.current++;for(const c of controllers.current)c.abort();callbacks.current.onBusyChange(false)};
@@ -70,7 +70,7 @@ export default function StaffAccess({auth,user,apiOrigin,disabled=false,onChange
   group.roles.push(member); groups.set(member.user_uid,group); return groups;
  },new Map<string,{uid:string;email?:string|null;emailStatus?:string;roles:Member[]}>()).values());
  return <section className="staff-access card" aria-labelledby="staff-access-heading">
-  <div className="staff-access-heading"><div><p className="eyebrow">ACCOUNT ACCESS</p><h2 id="staff-access-heading">계정 승인</h2></div>
+  <div className="staff-access-heading"><div><p className="eyebrow">ACCOUNT ACCESS</p><h2 id="staff-access-heading">{status?.isMaster||status?.canSetup?"계정 승인":"이용 권한 안내"}</h2></div>
    <button type="button" disabled={locked||loading} onClick={()=>void run(async()=>{await refresh();setNotice("등록 상태를 확인했습니다.")})}>등록 상태 확인</button></div>
   {loading&&<p role="status">계정 승인 상태를 확인하고 있습니다.</p>}
   {status?.needsRecentLogin&&<p className="notice">{messages.RECENT_LOGIN_REQUIRED}</p>}
@@ -84,7 +84,7 @@ export default function StaffAccess({auth,user,apiOrigin,disabled=false,onChange
    <label className="access-check"><input type="checkbox" checked={includeMerchant} disabled={locked} onChange={e=>setIncludeMerchant(e.target.checked)}/>이 계정으로 판매자 사이트도 이용</label>
    <button className="primary" disabled={locked||status.needsRecentLogin||!password}>마스터 등록</button>
   </form>}
-  {status&&!status.canSetup&&!status.isMaster&&<p>계정 승인은 등록된 마스터 구글 계정에서 진행합니다. 승인이 필요한 계정은 위의 내 계정 고유번호를 마스터에게 전달하세요.</p>}
+  {status&&!status.canSetup&&!status.isMaster&&<p>이 계정에는 다른 계정을 승인하는 기능이 없습니다. 판매자 또는 관리자 권한이 필요하면 위의 내 계정 고유번호를 마스터에게 전달하세요. 마스터가 승인한 뒤 해당 사이트에서 다시 로그인하면 됩니다.</p>}
   {status?.isMaster&&<>
    <p>마스터 계정으로 로그인했습니다. 계정을 확인한 뒤 필요한 역할을 승인하세요.</p>
    <form className="access-form" onSubmit={e=>{e.preventDefault();void run(async()=>{
