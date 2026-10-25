@@ -31,5 +31,22 @@
   },
   "productionBusinessWrites": false,
   "realProviderAuthenticationTested": false,
-  "deploymentStatus": "pending"
+  "deploymentStatus": "success",
+  "sourceCommit": "099f81fedd6053c744af3f528eb4a75d2f72cba3",
+  "pullRequest": "https://github.com/wevolmina/paybridge-mock/pull/7",
+  "deployments": {
+    "vercel": "https://vercel.com/wevolmina94-9986/paybridge-mock/JCbjHYfZNWuHNsez1pfFAu6r2gtt",
+    "firebaseRun": 40190862319,
+    "cloudflareRun": 40190862370,
+    "mainChecksRun": 40190862295,
+    "prChecksRun": 40190719072,
+    "allSucceeded": true
+  },
+  "productionUIObserved": {
+    "customerHeroAndCollapsedAccount": true,
+    "customerCatalogPrices": true,
+    "sellerLogin": true,
+    "adminLogin": true,
+    "authenticatedStaffViews": false
+  }
 }

@@ -34,3 +34,13 @@
 ## 로컬 검증 결과
 
 단위 검사 67개, 세 앱 빌드, 브라우저 검사 6종이 통과했다. 데스크톱·모바일 그림을 직접 확인했다. 상세 항목과 배포 상태는 [verification.json](verification.json)에 기록한다.
+
+## 배포 완료
+
+[PR #7](https://github.com/wevolmina/paybridge-mock/pull/7)을 main에 병합했다. 운영 소스 커밋은 `099f81fedd6053c744af3f528eb4a75d2f72cba3`이다. PR 검사, main 검사, Firebase·Cloudflare·Vercel 자동 배포가 모두 성공했다.
+
+- [고객](https://paybridge-mock.web.app/): 새 공간 소개와 접힌 계정 영역, 현재 패키지 가격을 운영 브라우저에서 확인.
+- [판매자](https://paybridge-mock.vercel.app/): 파란 강조색의 새 로그인 화면을 확인.
+- [관리자](https://paybridge-admin.evolvix.workers.dev/): 보라 강조색의 새 로그인 화면을 확인.
+
+로그인 이후 메뉴와 계정 묶음은 시험용 자료로 검증했으며, 운영 계정으로 로그인하거나 실제 권한·주문을 변경하지 않았다. 상세 실행 번호는 verification.json에 기록했다.
