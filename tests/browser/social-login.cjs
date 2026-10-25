@@ -15,7 +15,7 @@ const products=[{id:"bedroom-lighting",name:"편안한 밤 조명 패키지",pri
   {channel:process.env.PLAYWRIGHT_CHANNEL||"msedge"})});
  const errors=[],results={method:"Local apps with intercepted provider/Auth/business data; no production writes"};
  try{
-  async function context({ready=true,blocked=false,guestOrder=false,merchantAllowed=false}={}){
+  async function context({ready=true,blocked=false,guestOrder=false,merchantAllowed=false,socialFailure=null}={}){
    const ctx=await browser.newContext();
    const calls=[];
    if(blocked)await ctx.addInitScript(()=>{window.open=()=>null});
@@ -35,7 +35,7 @@ const products=[{id:"bedroom-lighting",name:"편안한 밤 조명 패키지",pri
    });
    await ctx.route("**/api/auth/social/start?*",r=>{
     const u=new URL(r.request().url()),nonce=u.searchParams.get("nonce"),origin=u.searchParams.get("origin");
-    const data={type:"paybridge-social-login",nonce,token:"header.payload.signature"};
+    const data={type:"paybridge-social-login",nonce,...(socialFailure?{error:socialFailure}:{token:"header.payload.signature"})};
     return r.fulfill({contentType:"text/html",body:'<!doctype html><meta charset="utf-8"><button id="send">로그인 결과 전달</button>'+
      '<script>window.opener.postMessage('+JSON.stringify({...data,nonce:"wrong-nonce"})+','+JSON.stringify(origin)+');'+
      'document.getElementById("send").onclick=()=>window.opener.postMessage('+JSON.stringify(data)+','+JSON.stringify(origin)+');</script>'});
@@ -95,7 +95,7 @@ const products=[{id:"bedroom-lighting",name:"편안한 밤 조명 패키지",pri
   const managerPopup=page.waitForEvent("popup");
   await page.getByRole("button",{name:"네이버로 계속하기",exact:true}).click();
   const naver=await managerPopup;await naver.locator("#send").click();
-  await page.getByText("관리자 권한이 없습니다. 승인된 계정으로 로그인해 주세요.",{exact:true}).waitFor();
+  await page.getByText("관리자 권한이 없습니다. 내 계정에서 고유번호를 확인해 마스터에게 승인을 요청하세요.",{exact:true}).waitFor();
   assert.equal(await page.locator(".admin-package-grid").count(),0);
   await page.getByRole("button",{name:"로그아웃",exact:true}).click();
   await page.getByRole("button",{name:"로그인",exact:true}).waitFor();
@@ -124,7 +124,7 @@ const products=[{id:"bedroom-lighting",name:"편안한 밤 조명 패키지",pri
     await page.getByText("마지막으로 확인한 모의 거래",{exact:true}).waitFor();
     assert.match(await page.locator(".metrics").innerText(),/누적 모의 매출/);
    }else{
-    await page.getByText("판매자 권한이 없습니다. 승인된 계정으로 로그인해 주세요.",{exact:true}).waitFor();
+    await page.getByText("판매자 권한이 없습니다. 내 계정에서 고유번호를 확인해 마스터에게 승인을 요청하세요.",{exact:true}).waitFor();
     assert.equal(await page.locator("#transactions .approved").count(),0);
     assert(!/99,000/.test(await page.locator(".metrics").innerText()));
    }
@@ -176,6 +176,14 @@ const products=[{id:"bedroom-lighting",name:"편안한 밤 조명 패키지",pri
   await page.getByRole("alert").filter({hasText:"팝업을 허용"}).waitFor();
   assert.equal(await page.getByRole("button",{name:"네이버로 계속하기",exact:true}).isEnabled(),true);
   results.blockedPopupRecovery=true;await ctx.close();
+  for(const code of ["SOCIAL_TOKEN_EXCHANGE_FAILED","SOCIAL_PROFILE_FAILED","SOCIAL_FIREBASE_TOKEN_FAILED"]){
+   ({ctx,page}=await context({socialFailure:code}));await page.goto(customer);await page.locator(".customer-account summary").click();
+   const failedPopup=page.waitForEvent("popup");await page.getByRole("button",{name:"카카오로 계속하기",exact:true}).click();
+   const failed=await failedPopup;await failed.locator("#send").click();
+   await page.getByRole("alert").filter({hasText:"진단 코드: "+code}).waitFor();
+   assert.equal(await page.getByRole("button",{name:"카카오로 계속하기",exact:true}).isEnabled(),true);await ctx.close();
+  }
+  results.safeStageDiagnostics=true;
   assert.deepEqual(errors,[]);results.pageErrors=errors;results.widths=[320,390,768,1440];
   fs.writeFileSync(out+"/verification.json",JSON.stringify(results,null,2));console.log(JSON.stringify(results));
  }finally{await browser.close()}

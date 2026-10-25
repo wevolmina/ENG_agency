@@ -1,7 +1,7 @@
 "use client";
 import {useEffect, useRef, useState} from "react";
 import {GoogleAuthProvider, linkWithPopup, signInWithCustomToken, signInWithPopup, type Auth} from "firebase/auth";
-import {readSocialResult, socialErrorMessage} from "./social-policy";
+import {readSocialResult, socialErrorMessage, socialErrorCode} from "./social-policy";
 type Props = {
   auth: Auth | null;
   apiOrigin: string;
@@ -17,6 +17,7 @@ export default function SocialLogin({auth, apiOrigin, disabled = false,
   const [config, setConfig] = useState<Config | null>(null);
   const [provider, setProvider] = useState<keyof Config | null>(null);
   const [error, setError] = useState("");
+  const [diagnostic,setDiagnostic] = useState("");
   const working = useRef(false), mounted = useRef(true);
   const cancel = useRef<(() => void) | null>(null);
   useEffect(() => {
@@ -64,8 +65,8 @@ export default function SocialLogin({auth, apiOrigin, disabled = false,
   }
   async function login(p: keyof Config) {
     if (!auth || disabled || working.current || !config?.[p] || (p !== "google" && blockCustomForGuest)) return;
-    if (allowLogin && !allowLogin(p)) {setError("기존 비회원 주문 결과를 먼저 확인해 주세요. 주문 계정을 자동으로 바꾸지 않습니다."); return;}
-    working.current = true; setProvider(p); setError(""); onBusyChange?.(true);
+    if (allowLogin && !allowLogin(p)) {setDiagnostic("");setError("기존 비회원 주문 결과를 먼저 확인해 주세요. 주문 계정을 자동으로 바꾸지 않습니다."); return;}
+    working.current = true; setProvider(p); setError(""); setDiagnostic(""); onBusyChange?.(true);
     try {
       if (p === "google") {
         const google = new GoogleAuthProvider();
@@ -78,7 +79,7 @@ export default function SocialLogin({auth, apiOrigin, disabled = false,
         await signInWithCustomToken(auth, token);
       }
     } catch (e) {
-      if (mounted.current) setError(socialErrorMessage(e));
+      if (mounted.current) {setError(socialErrorMessage(e));setDiagnostic(socialErrorCode(e));}
     } finally {
       working.current = false;
       if (mounted.current) {setProvider(null); onBusyChange?.(false);}
@@ -98,7 +99,7 @@ export default function SocialLogin({auth, apiOrigin, disabled = false,
     {blockCustomForGuest && <p className="social-help">비회원 주문은 먼저 결과를 확인해 주세요.
       구글 계정 연결은 현재 비회원 계정을 유지하지만, 이미 다른 계정에 연결된 경우 자동으로 합치지 않습니다.
       카카오·네이버로 기존 비회원 주문을 옮기는 기능은 지원하지 않습니다.</p>}
-    {error && <p className="social-error" role="alert">{error}</p>}
+    {error && <p className="social-error" role="alert">{error}{diagnostic&&<small className="social-diagnostic">진단 코드: {diagnostic}</small>}</p>}
     <p className="social-help">선택한 서비스의 로그인 창이 열립니다.</p>
   </div>;
 }

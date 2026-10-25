@@ -1,0 +1,15 @@
+{
+  "dateKST": "2026-10-25",
+  "unitTestsPassed": 71,
+  "buildsPassed": ["customer", "merchant", "admin"],
+  "browserSuitesPassed": ["staff-access", "social-login", "role-workspaces"],
+  "nonMasterApprovalControlsHidden": true,
+  "safeStageDiagnostics": true,
+  "widths": [320, 390, 768, 1440],
+  "productionGoogleFailureReproduced": true,
+  "exactProductionGoogleCode": "not-yet-separated-in-old-UI",
+  "providerAuthenticationCompleted": false,
+  "providerSettingsChanged": false,
+  "productionRoleWrites": false,
+  "deploymentStatus": "pending"
+}

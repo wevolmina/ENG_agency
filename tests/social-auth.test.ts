@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {beginSocialLogin, exchangeSocialCode, finishSocialLogin, signSocialState,
   socialConfiguration, socialConfigResponse, socialOrigins, socialUid, verifySocialState,
   type SocialEnv} from "../apps/merchant/lib/social-auth";
-import {readSocialResult, socialErrorMessage} from "../packages/staff-ui/social-policy";
+import {readSocialResult, socialErrorMessage, socialErrorCode} from "../packages/staff-ui/social-policy";
 const origin = "https://paybridge-mock.web.app", api = "https://paybridge-mock.vercel.app";
 const nonce = "b".repeat(64), secret = "test-only-state-secret-".repeat(3), now = 100000;
 const env: SocialEnv = {SOCIAL_AUTH_STATE_SECRET: secret, KAKAO_REST_API_KEY: "kakao-test-id",
@@ -140,10 +140,10 @@ test("invalid provider profile or missing token never yields an identity", async
   for (const bad of [{resultcode: "01", response: {id: "x"}}, {resultcode: "00", response: {}}, {id: -1}]) {
     let n = 0;
     await assert.rejects(exchangeSocialCode("naver", "code", "state", env, async () =>
-      Response.json(++n === 1 ? {access_token: "token"} : bad)), /SOCIAL_PROVIDER_REJECTED/);
+      Response.json(++n === 1 ? {access_token: "token"} : bad)), /SOCIAL_PROFILE_FAILED/);
   }
   await assert.rejects(exchangeSocialCode("kakao", "code", "state", env, async () =>
-    Response.json({error: "no-token"})), /SOCIAL_PROVIDER_REJECTED/);
+    Response.json({error: "no-token"})), /SOCIAL_TOKEN_EXCHANGE_FAILED/);
 });
 test("callback rejects missing/tampered/wrong state before any provider call or token mint", async () => {
   let calls = 0;
@@ -199,4 +199,33 @@ test("browser result rejects wrong nonce, unknown fields, malformed token and ar
   assert.match(socialErrorMessage({code: "auth/popup-blocked"}), /팝업/);
   assert.match(socialErrorMessage({code: "auth/credential-already-in-use"}), /자동으로 합치지/);
   assert(!socialErrorMessage(Error("private-token")).includes("private-token"));
+});
+
+
+test("safe diagnostics distinguish Google domain/provider setup without echoing private payloads",()=>{
+ assert.equal(socialErrorCode({code:"auth/unauthorized-domain",message:"private-secret"}),"auth/unauthorized-domain");
+ assert.match(socialErrorMessage({code:"auth/unauthorized-domain"}),/허용 도메인/);
+ assert.match(socialErrorMessage({code:"auth/operation-not-allowed"}),/활성화/);
+ assert.match(socialErrorMessage({code:"auth/custom-token-mismatch"}),/같은 프로젝트/);
+ assert.equal(socialErrorCode(Error("private-secret-and-email")),"SOCIAL_LOGIN_FAILED");
+ assert(!socialErrorMessage(Error("private-secret-and-email")).includes("private-secret"));
+});
+test("callback diagnoses token exchange, profile and Firebase mint separately",async()=>{
+ const tokenFail=await finishSocialLogin(callback(),"kakao",env,async()=>"never",async()=>Response.json({error:"private-provider-message"},{status:401}),now);
+ const tokenText=await tokenFail.text();assert(tokenText.includes("SOCIAL_TOKEN_EXCHANGE_FAILED"));assert(!tokenText.includes("private-provider-message"));
+ let calls=0;const profileFail=await finishSocialLogin(callback(),"kakao",env,async()=>"never",async()=>++calls===1?Response.json({access_token:"private-provider-token"}):Response.json({error:"private-profile-message"},{status:403}),now);
+ const profileText=await profileFail.text();assert(profileText.includes("SOCIAL_PROFILE_FAILED"));assert(!profileText.includes("private-profile-message"));
+ calls=0;const mintFail=await finishSocialLogin(callback(),"kakao",env,async()=>{throw Error("private-PEM")},async()=>Response.json(++calls===1?{access_token:"private-token"}:{id:123}),now);
+ const mintText=await mintFail.text();assert(mintText.includes("SOCIAL_FIREBASE_TOKEN_FAILED"));assert(!mintText.includes("private-PEM"));
+});
+test("provider configuration rejection is not mislabeled as user cancellation",async()=>{
+ const req=callback();const result=await finishSocialLogin(new Request(req.url.replace("&code=fixture-code","&error=invalid_client&error_description=private-secret"),{headers:req.headers}),"kakao",env,async()=>"never",async()=>{throw Error("must not call")},now);
+ const html=await result.text();assert(html.includes("SOCIAL_PROVIDER_CONFIG_ERROR"));assert(!html.includes("private-secret"));assert(!html.includes("SOCIAL_CANCELLED"));
+});
+test("browser accepts only whitelisted stage codes with the matching nonce",()=>{
+ for(const error of ["SOCIAL_TOKEN_EXCHANGE_FAILED","SOCIAL_PROFILE_FAILED","SOCIAL_FIREBASE_TOKEN_FAILED","SOCIAL_PROVIDER_CONFIG_ERROR"]){
+  assert(readSocialResult({type:"paybridge-social-login",nonce,error},nonce));
+  assert.equal(readSocialResult({type:"paybridge-social-login",nonce,error},"wrong"),null);
+ }
+ assert.equal(readSocialResult({type:"paybridge-social-login",nonce,error:"private-provider-error"},nonce),null);
 });

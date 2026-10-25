@@ -100,6 +100,7 @@ export default function StaffDashboard({
   function navigate(next: string) { if (accessBusy) return; setView(next); window.history.replaceState(null, "", "#" + next); requestAnimationFrame(() => { viewHeading.current?.focus({preventScroll:true}); window.scrollTo({top:0}); }); }
   const [socialBusy, setSocialBusy] = useState(false);
   const [accessBusy, setAccessBusy] = useState(false);
+  const [canManageAccounts, setCanManageAccounts] = useState(false);
   const [packageFilter, setPackageFilter] = useState("all"),
     [pendingPackage, setPendingPackage] = useState<string | null>(null);
   const focusedPackage = useRef<string | null>(null);
@@ -142,6 +143,7 @@ export default function StaffDashboard({
       return onAuthStateChanged(clientAuth(), (u) => {
         current.current = u?.uid || null;
         setUser(u);
+        setCanManageAccounts(false);
         setData(null);
         setError("");
       });
@@ -181,8 +183,8 @@ export default function StaffDashboard({
           setData(null);
           setError(
             admin
-              ? "관리자 권한이 없습니다. 승인된 계정으로 로그인해 주세요."
-              : "판매자 권한이 없습니다. 승인된 계정으로 로그인해 주세요.",
+              ? "관리자 권한이 없습니다. 내 계정에서 고유번호를 확인해 마스터에게 승인을 요청하세요."
+              : "판매자 권한이 없습니다. 내 계정에서 고유번호를 확인해 마스터에게 승인을 요청하세요.",
           );
           return;
         }
@@ -379,7 +381,7 @@ export default function StaffDashboard({
           </div>
         </div>
         <nav aria-label={admin ? "관리자 메뉴" : "판매자 메뉴"}>
-          {(admin ? [["packages","공간·패키지"],["accounts","계정·권한"],["transactions","주문 현황"],["activity","변경 이력"]] : [["overview","매출 개요"],["transactions","주문 내역"],["accounts","내 계정"]]).map(([key,label],i)=><a key={key} href={"#"+key} className={view===key?"active":undefined} aria-current={view===key?"page":undefined} onClick={e=>{e.preventDefault();navigate(key)}} aria-disabled={accessBusy}><span className="nav-number" aria-hidden="true">0{i+1}</span>{label}</a>)}
+          {(admin ? [["packages","공간·패키지"],["accounts",canManageAccounts?"계정·권한":"내 계정"],["transactions","주문 현황"],["activity","변경 이력"]] : [["overview","매출 개요"],["transactions","주문 내역"],["accounts","내 계정"]]).map(([key,label],i)=><a key={key} href={"#"+key} className={view===key?"active":undefined} aria-current={view===key?"page":undefined} onClick={e=>{e.preventDefault();navigate(key)}} aria-disabled={accessBusy}><span className="nav-number" aria-hidden="true">0{i+1}</span>{label}</a>)}
           <div className="nav-external-label">다른 공간</div>
           {(admin || adminSiteUrl) && <a href={admin ? merchantSiteUrl : adminSiteUrl}>{admin ? "판매자 센터" : "관리자 사이트"}<span aria-hidden="true">↗</span></a>}
           <a href="https://paybridge-mock.web.app/">고객 스토어<span aria-hidden="true">↗</span></a>
@@ -401,7 +403,7 @@ export default function StaffDashboard({
               <span className="eyebrow">
                 {admin ? "SPACE & PACKAGE MANAGEMENT" : "YOUR SMART HOME STORE"}
               </span>
-              <h1 ref={viewHeading} tabIndex={-1}>{view==="accounts" ? (admin ? "계정과 권한" : "내 계정") : view==="transactions" ? "주문 내역" : view==="activity" ? "변경 이력" : admin ? "공간과 패키지" : "스토어 한눈에"}</h1>
+              <h1 ref={viewHeading} tabIndex={-1}>{view==="accounts" ? (admin && canManageAccounts ? "계정과 권한" : "내 계정") : view==="transactions" ? "주문 내역" : view==="activity" ? "변경 이력" : admin ? "공간과 패키지" : "스토어 한눈에"}</h1>
               <p>
                 {view==="accounts" ? "로그인 계정과 이용 권한을 확인하세요." : view==="activity" ? "패키지의 공개 상태가 바뀐 기록입니다." : view==="transactions" ? "주문 구성과 금액을 확인하고 검색하세요." : admin ? "고객에게 공개할 공간과 패키지를 관리하세요." : "공간 패키지의 주문과 매출을 확인하세요."}
               </p>
@@ -421,7 +423,7 @@ export default function StaffDashboard({
                 <PrivateValue key={user.uid} value={user.uid} label="내 계정 고유번호"/>
               </div>
               <div hidden={view!=="accounts"}>{admin ? <StaffAccess auth={clientAuth()} user={user} apiOrigin={apiOrigin}
-                disabled={busy} onBusyChange={setAccessBusy} onChanged={()=>setRevision(v=>v+1)}/> : <section className="card account-help"><h2>판매자 이용 권한</h2><p>권한이 필요하면 위 계정 고유번호를 확인해 마스터에게 전달하세요.</p><p>이메일과 고유번호는 눈 버튼으로 확인할 수 있습니다.</p></section>}</div>
+                disabled={busy} onBusyChange={setAccessBusy} onManagementChange={setCanManageAccounts} onChanged={()=>setRevision(v=>v+1)}/> : <section className="card account-help"><h2>판매자 이용 권한</h2><p>권한이 필요하면 위 계정 고유번호를 확인해 마스터에게 전달하세요.</p><p>이메일과 고유번호는 눈 버튼으로 확인할 수 있습니다.</p></section>}</div>
               <div className="status-line" hidden={view==="accounts"}>
                 <span>
                   {data ? "마지막으로 확인한 모의 거래" : "권한·DB 확인 중"}
@@ -742,7 +744,7 @@ export default function StaffDashboard({
 
           {error && (
             <div role="alert" className="notice">
-              <span>{error}</span> <button onClick={()=>navigate("accounts")}>계정·권한 확인</button>
+              <span>{error}</span> <button onClick={()=>navigate("accounts")}>내 계정 확인</button>
             </div>
           )}
           <footer>PAYBRIDGE <span>모의 주문 환경 · 실제 청구와 정산 없음</span></footer>
