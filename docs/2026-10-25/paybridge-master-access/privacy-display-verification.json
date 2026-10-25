@@ -1,0 +1,32 @@
+{
+  "dateKST": "2026-10-25",
+  "unitTestsExpected": 67,
+  "browser": {
+    "method": "Isolated Auth/API fixtures; no real setup password or production role writes",
+    "setupPasswordCleared": true,
+    "setupLocksAfterSuccess": true,
+    "sellerOptIn": true,
+    "rootAdminProtected": true,
+    "targetAndRoleChangeResetReview": true,
+    "approveRevokeAndAudit": true,
+    "emailsAndUidsMaskedByDefault": true,
+    "independentEyeToggles": true,
+    "passwordToggleResetsWhenCleared": true,
+    "staleLoginCannotWrite": true,
+    "ordinaryAccountCannotManage": true,
+    "pageErrors": [],
+    "widths": [
+      320,
+      390,
+      768,
+      1440
+    ]
+  },
+  "regression": [
+    "social-login",
+    "admin-hosting"
+  ],
+  "productionRoleWrites": false,
+  "providerSecretsReturned": false,
+  "deploymentStatus": "pending"
+}
