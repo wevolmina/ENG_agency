@@ -130,7 +130,7 @@ const products = [
       await page.addStyleTag({
         content:
           fs.readFileSync(process.env.QA_FONT_CSS, "utf8") +
-          '\nbody{font-family:"Noto Sans KR",sans-serif!important}',
+          '\n.auth-page,.shell,body{font-family:"Noto Sans KR",sans-serif!important}',
       });
       await page.evaluate(() => document.fonts.ready);
     }

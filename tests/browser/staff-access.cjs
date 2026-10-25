@@ -44,6 +44,7 @@ const cors={"access-control-allow-origin":"*","access-control-allow-headers":"*"
   const page=await ctx.newPage();page.on("pageerror",e=>errors.push(e.message));await page.goto(admin);
   await page.getByRole("textbox",{name:"이메일",exact:true}).fill("owner@example.invalid");
   await page.getByLabel("비밀번호",{exact:true}).fill("fixture-login-password");await page.getByRole("button",{name:"로그인",exact:true}).click();
+  await page.getByRole("link",{name:"계정·권한",exact:true}).click();
   await page.locator(".staff-account-id").waitFor();
   return {ctx,page,writes};
  }
@@ -71,9 +72,11 @@ const cors={"access-control-allow-origin":"*","access-control-allow-headers":"*"
   assert(!/owner-fixture|owner@example.invalid/.test(await page.locator(".access-members").innerText()));
   await page.getByRole("button",{name:"계정 1 이메일 표시",exact:true}).click();
   assert.match(await page.locator(".access-members").innerText(),/owner@example.invalid/);
-  assert.equal(await page.getByRole("button",{name:"계정 2 이메일 표시",exact:true}).getAttribute("aria-pressed"),"false");
+  assert.equal(await page.getByRole("button",{name:"계정 1 고유번호 표시",exact:true}).getAttribute("aria-pressed"),"false");
   await page.getByRole("button",{name:"계정 1 이메일 숨기기",exact:true}).click();
-  await page.getByText("마지막으로 확인한 모의 거래",{exact:true}).waitFor();
+  await page.getByText("마지막으로 확인한 모의 거래",{exact:true}).waitFor({state:"attached"});
+  assert.equal(await page.locator(".access-members>li").count(),1,"one account groups both roles");
+  assert.equal(await page.locator(".access-members .access-role-item").count(),2);
   const target=page.getByLabel("승인할 계정 고유번호(UID)",{exact:true});
   await target.fill("seller-fixture");await page.getByRole("button",{name:"계정 확인",exact:true}).click();
   await page.getByRole("heading",{name:"승인할 계정 확인",exact:true}).waitFor();
@@ -89,7 +92,7 @@ const cors={"access-control-allow-origin":"*","access-control-allow-headers":"*"
   await target.fill("seller-fixture");await page.getByRole("button",{name:"계정 확인",exact:true}).click();await confirm.check();
   await page.getByRole("button",{name:"판매자로 승인",exact:true}).click();await page.getByText("판매자 권한을 승인했습니다.",{exact:true}).waitFor();
   assert(!/seller-fixture|seller@example.invalid/.test(await page.locator(".access-members").innerText()));
-  await page.getByRole("button",{name:"계정 3 판매자 권한 해제",exact:true}).click();
+  await page.getByRole("button",{name:"계정 2 판매자 권한 해제",exact:true}).click();
   await page.getByRole("group",{name:"권한 해제 확인",exact:true}).waitFor();
   await page.getByRole("button",{name:"해제 확인",exact:true}).click();await page.getByText("권한을 해제했습니다.",{exact:true}).waitFor();
   assert.equal(writes.filter(x=>x.action==="bootstrap").length,2);assert.deepEqual(writes.filter(x=>x.action==="set").map(x=>x.active),[true,false]);
@@ -102,7 +105,7 @@ const cors={"access-control-allow-origin":"*","access-control-allow-headers":"*"
   for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:900});
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,"access overflow "+width)}
   fs.mkdirSync(out,{recursive:true});await page.setViewportSize({width:1440,height:960});
-  if(process.env.QA_FONT_CSS)await page.addStyleTag({content:fs.readFileSync(process.env.QA_FONT_CSS,"utf8")+'\nbody{font-family:"Noto Sans KR",sans-serif!important}'});
+  if(process.env.QA_FONT_CSS)await page.addStyleTag({content:fs.readFileSync(process.env.QA_FONT_CSS,"utf8")+'\n.auth-page,.shell,body{font-family:"Noto Sans KR",sans-serif!important}'});
   await page.evaluate(()=>document.fonts.ready);await page.locator(".staff-access").screenshot({path:out+"/staff-access-desktop.png"});
   await page.setViewportSize({width:390,height:844});await page.locator(".staff-access").screenshot({path:out+"/staff-access-mobile.png"});await ctx.close();
   ({ctx,page,writes}=await context({stale:true}));await page.getByRole("heading",{name:"최초 마스터 계정 등록",exact:true}).waitFor();

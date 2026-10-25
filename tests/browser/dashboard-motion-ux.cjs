@@ -188,7 +188,7 @@ async function run() {
         .fill("staff@example.test");
       await page.getByLabel("비밀번호", { exact: true }).fill("fixture-only");
       await page.getByRole("button", { name: "로그인", exact: true }).click();
-      await page.locator("table tbody td b").first().waitFor();
+      await page.locator("table tbody td b").first().waitFor({state:"attached"});
       assert.equal(
         await page
           .locator(".new-order-notice,.metrics-updated,.new-order-row")
@@ -205,7 +205,7 @@ async function run() {
         assert(reads > before, "poll executed");
         await page
           .getByText(data.payments[0].order_id, { exact: true })
-          .waitFor();
+          .waitFor({state:"attached"});
       }
       await poll();
       assert.equal(
@@ -298,7 +298,7 @@ async function run() {
         await page.addStyleTag({
           content:
             fs.readFileSync(process.env.QA_FONT_CSS, "utf8") +
-            '\nbody{font-family:"Noto Sans KR",sans-serif!important}',
+            '\n.auth-page,.shell,body{font-family:"Noto Sans KR",sans-serif!important}',
         });
         await page.evaluate(() => document.fonts.ready);
       }

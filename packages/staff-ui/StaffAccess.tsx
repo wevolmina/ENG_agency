@@ -65,6 +65,10 @@ export default function StaffAccess({auth,user,apiOrigin,disabled=false,onChange
  }
  const locked=busy||disabled;
  const member=account?.memberships.find(m=>m.role===role);
+ const groupedMembers = Array.from((status?.members || []).reduce((groups, member) => {
+  const group = groups.get(member.user_uid) || {uid:member.user_uid,email:member.email,emailStatus:member.emailStatus,roles:[] as Member[]};
+  group.roles.push(member); groups.set(member.user_uid,group); return groups;
+ },new Map<string,{uid:string;email?:string|null;emailStatus?:string;roles:Member[]}>()).values());
  return <section className="staff-access card" aria-labelledby="staff-access-heading">
   <div className="staff-access-heading"><div><p className="eyebrow">ACCOUNT ACCESS</p><h2 id="staff-access-heading">계정 승인</h2></div>
    <button type="button" disabled={locked||loading} onClick={()=>void run(async()=>{await refresh();setNotice("등록 상태를 확인했습니다.")})}>등록 상태 확인</button></div>
@@ -82,7 +86,7 @@ export default function StaffAccess({auth,user,apiOrigin,disabled=false,onChange
   </form>}
   {status&&!status.canSetup&&!status.isMaster&&<p>계정 승인은 등록된 마스터 구글 계정에서 진행합니다. 승인이 필요한 계정은 위의 내 계정 고유번호를 마스터에게 전달하세요.</p>}
   {status?.isMaster&&<>
-   <p>마스터 계정입니다. {status.merchantId} 상점의 계정을 승인하거나 권한을 해제할 수 있습니다. 최초 등록 기능은 잠겼습니다.</p>
+   <p>마스터 계정으로 로그인했습니다. 계정을 확인한 뒤 필요한 역할을 승인하세요.</p>
    <form className="access-form" onSubmit={e=>{e.preventDefault();void run(async()=>{
     setAccount(null);setConfirmed(false);const result=await request({action:"lookup",uid:target.trim()});setAccount(result.account);
    })}}>
@@ -102,13 +106,17 @@ export default function StaffAccess({auth,user,apiOrigin,disabled=false,onChange
      })}>{roleName(role)}로 승인</button>
     </>}
    </div>}
-   <h3>등록된 권한</h3><p>현재 상점의 최대 100개 권한을 표시합니다. 계정 확인으로 개별 계정을 조회할 수 있습니다.</p>
-   <ul className="access-members">{status.members?.map((m,index)=><li key={m.user_uid+":"+m.role}>
-    <div><b>{roleName(m.role)} · {m.active?"승인됨":"해제됨"}</b><div className="access-member-fields">
-     <div className="access-member-field"><small>이메일</small><PrivateValue value={m.email} label={`계정 ${index+1} 이메일`} emptyText={m.emailStatus==="unavailable"?"조회하지 못함":m.emailStatus==="not_found"?"계정 없음":"제공되지 않음"}/></div>
-     <div className="access-member-field"><small>고유번호</small><PrivateValue value={m.user_uid} label={`계정 ${index+1} 고유번호`}/></div>
-    </div></div>
-    {m.user_uid===status.masterUid&&m.role==="admin"?<span>마스터 보호</span>:!!m.active&&<button type="button" disabled={locked||status.needsRecentLogin} aria-label={`계정 ${index+1} ${roleName(m.role)} 권한 해제`} onClick={()=>setRevoke(m)}>권한 해제</button>}
+   <div className="access-list-heading"><h3>등록된 계정 <small>{groupedMembers.length}개</small></h3><p>계정별로 판매자·관리자 권한을 함께 확인하세요. 최대 100개 권한 기준입니다.</p></div>
+   <ul className="access-members">{groupedMembers.map((group,index)=><li key={group.uid}>
+    <div className="access-account-heading"><strong>등록 계정 {String(index+1).padStart(2,"0")}</strong>{group.uid===status.masterUid&&<span className="access-master-badge">마스터 계정</span>}</div>
+    <div className="access-member-fields">
+     <div className="access-member-field"><small>이메일</small><PrivateValue value={group.email} label={`계정 ${index+1} 이메일`} emptyText={group.emailStatus==="unavailable"?"조회하지 못함":group.emailStatus==="not_found"?"계정 없음":"제공되지 않음"}/></div>
+     <div className="access-member-field"><small>고유번호</small><PrivateValue value={group.uid} label={`계정 ${index+1} 고유번호`}/></div>
+    </div>
+    <div className="access-role-list">{group.roles.map(m=><div key={m.role} className="access-role-item">
+     <b>{roleName(m.role)}</b><span>{m.active?"승인됨":"해제됨"}</span>
+     {group.uid===status.masterUid&&m.role==="admin"?<span>마스터 보호</span>:!!m.active&&<button type="button" disabled={locked||status.needsRecentLogin} aria-label={`계정 ${index+1} ${roleName(m.role)} 권한 해제`} onClick={()=>setRevoke(m)}>권한 해제</button>}
+    </div>)}</div>
    </li>)}</ul>
    {revoke&&<div className="access-review" role="group" aria-label="권한 해제 확인">
     <p>아래 계정의 {roleName(revoke.role)} 권한을 해제합니다. 해당 역할의 다음 자료 조회부터 접근이 차단됩니다.</p>
