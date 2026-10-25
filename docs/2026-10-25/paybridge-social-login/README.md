@@ -113,3 +113,14 @@ Google과 카카오·네이버는 같은 사람이어도 Firebase 사용자 번�
 ## 공식 근거
 
 [Firebase Google 로그인](https://firebase.google.com/docs/auth/web/google-signin) · [계정 연결](https://firebase.google.com/docs/auth/web/account-linking) · [사용자 지정 토큰](https://firebase.google.com/docs/auth/admin/create-custom-tokens) · [카카오 REST 로그인](https://developers.kakao.com/docs/ko/kakaologin/rest-api) · [네이버 로그인 API](https://developers.naver.com/docs/login/api/api.md) · [네이버 프로필 조회](https://developers.naver.com/docs/login/profile/profile.md)
+
+## 게시 결과 · 공급자 연결 활성화 대기
+
+- [PR #3](https://github.com/wevolmina/paybridge-mock/pull/3) 병합. 기능 게시 소스는 43d3d334d3b74d0bd5f777acef0be8c27de31b59.
+- [PR 검사 성공](https://github.com/wevolmina/paybridge-mock/actions/runs/40165786444). [main 검사](https://github.com/wevolmina/paybridge-mock/actions/runs/40165902555).
+- [고객 자동 배포 성공](https://github.com/wevolmina/paybridge-mock/actions/runs/40165902564), Hosting 버전 61243ef01b996529.
+- [관리자 자동 배포 성공](https://github.com/wevolmina/paybridge-mock/actions/runs/40165902568), Worker 버전 6f643d1d-cd5e-48ef-bd20-d0493b8b3112.
+- [Vercel 배포 성공](https://vercel.com/wevolmina94-9986/paybridge-mock/GicGA95wEnqJC8c5NBCujcyGUw94).
+- 운영 HTML의 고객·관리자 연결 파일이 새 빌드와 일치한다. 실제 두 사이트에서 세 버튼의 ‘연결 준비 중’ 표시를 확인했다.
+- 준비 상태 조회는 허용된 고객 주소에서 200과 세 공급자 모두 false. 허용하지 않은 주소는 403, 인증 정보 없는 관리자 조회는 403.
+- **화면·서버 게시를 마친 상태이며 실제 공급자 로그인 완료를 뜻하지 않는다.** Google은 최종 저장 승인 대기, 카카오·네이버는 앱 키·Secret·콜백 등록이 남았다. 비밀값을 읽거나 생성해 게시하지 않았다.
