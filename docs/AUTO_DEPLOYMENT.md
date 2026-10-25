@@ -26,13 +26,13 @@ CI/CD는 Continuous Integration / Continuous Delivery 또는 Deployment의 줄�
 | 항목 | 상태 |
 | --- | --- |
 | 저장소 | [wevolmina/paybridge-mock](https://github.com/wevolmina/paybridge-mock) |
-| 작업 브랜치·병합 요청 | `feat/admin-cloudflare-ui-release`, [PR #1](https://github.com/wevolmina/paybridge-mock/pull/1) |
-| Vercel | `git.deploymentEnabled: true`. 앞선 커밋의 미리보기 자동 배포 성공 확인 |
-| Firebase·Cloudflare | 자동 배포 작업 파일 추가. 원격 비밀값·변수 등록 및 첫 운영 실행은 별도 확인 필요 |
-| 관리자 실제 운영 URL | Cloudflare 최초 배포 후 기록. 추측해서 만들지 않음 |
-| 이번 변경의 운영 배포 | 아직 완료로 기록하지 않음. 사용자가 최초 연결 후 PR 병합 예정 |
+| 병합 상태 | [PR #1](https://github.com/wevolmina/paybridge-mock/pull/1), [PR #2](https://github.com/wevolmina/paybridge-mock/pull/2) 병합 완료. 배포 코드 main: `21073fe` |
+| Vercel | Production Ready 확인. 관리자 주소 두 환경 변수 저장 후 재배포 완료 |
+| Cloudflare | GitHub Actions 운영 배포 성공. [관리자 화면](https://paybridge-admin.evolvix.workers.dev/) 접속 확인 |
+| 관리자 실제 운영 URL | `https://paybridge-admin.evolvix.workers.dev` |
+| 고객 Firebase | 설정·설치·테스트·빌드 통과. 게시 단계에서 `serviceusage.services.get` 권한 부족으로 실패 |
 
-이번 작업에서 GitHub Secrets를 등록하거나 Cloudflare 토큰·Firebase 서비스 계정 키를 생성하지 않았습니다. 연결된 GitHub 도구에는 비밀값 등록 기능이 없습니다. 값은 아래 화면에서 직접 입력하며 채팅이나 Git 파일로 보내지 않습니다.
+사용자가 GitHub 설정 등록을 진행한 뒤 실제 자동 배포를 실행했습니다. Secret 값을 읽거나 새 키를 생성하지 않았습니다. Cloudflare 게시 성공과 Firebase 게시 실패를 구분합니다. Firebase 승인 도메인 추가는 아직 저장하지 않았으며 사용자 확인을 기다립니다.
 
 ## 3. 처음 한 번: GitHub 변수 4개 입력
 
@@ -66,7 +66,7 @@ Cloudflare Account ID는 대상 계정의 대시보드에서 확인합니다. Zo
 
 1. Google Cloud Console에서 **paybridge-mock** 프로젝트를 선택합니다.
 2. IAM 및 관리자 → 서비스 계정에서 Hosting 배포 전용 계정을 준비합니다. 기존 전용 계정이 있다면 재사용할 수 있습니다.
-3. Hosting live 배포에 필요한 **Firebase Hosting Admin**(`roles/firebasehosting.admin`)과 CLI의 API 키 조회에 필요한 **API Keys Viewer**(`roles/serviceusage.apiKeysViewer`) 권한을 확인합니다.
+3. **Firebase Hosting Admin**(`roles/firebasehosting.admin`), CLI의 키 조회용 **API Keys Viewer**(`roles/serviceusage.apiKeysViewer`), API 상태 조회용 **Service Usage Viewer**(`roles/serviceusage.serviceUsageViewer`) 권한을 확인합니다. 마지막 역할은 `serviceusage.services.get`을 포함하며 API 활성화·비활성화 권한은 주지 않습니다. 실제 첫 배포에서 이 조회 권한 누락으로 403이 발생했습니다.
 4. 해당 서비스 계정 → 키에서 JSON 키를 안전하게 준비합니다. 조직 정책이 키 생성을 막으면 정책을 끄지 말고 관리자에게 인증 방식을 확인합니다.
 5. JSON 전체를 위 GitHub Secret에 입력합니다. `project_id`가 `paybridge-mock`인지 확인하세요.
 6. 키 파일은 Git에 추가하지 않습니다. Vercel 기존 서버 키를 복사하기보다 배포 전용 계정을 사용합니다.
@@ -84,7 +84,7 @@ Global API Key나 로그인 비밀번호를 사용하지 않습니다. 이 안�
 
 ## 5. 처음 한 번: 관리자 주소 확보
 
-관리자 사이트가 이미 `paybridge-admin`으로 배포돼 있다면 그 실제 주소를 사용하고 이 단계는 건너뜁니다.
+**현재는 GitHub Actions로 `paybridge-admin` 배포를 완료했습니다. 실제 주소는 `https://paybridge-admin.evolvix.workers.dev`이므로 이 단계의 PC 최초 배포 명령을 다시 실행할 필요가 없습니다.** 아래는 다른 환경에서 처음 준비할 때의 참고 절차입니다.
 
 아직 없다면 PR을 합치기 전에 현재 작업 브랜치에서 관리자만 **최초 1회** 배포해 주소를 확보합니다. 기존 판매자 `/admin`이 새 주소로 이동하기 때문에 주소·사이트를 먼저 준비하는 단계입니다. 이후 반복 배포는 Actions가 담당합니다.
 
@@ -146,8 +146,8 @@ npm run deploy:admin
 Settings → Environment Variables에서 **Production** 대상에 다음 두 값을 같은 실제 관리자 Origin으로 저장합니다.
 
 ```dotenv
-ADMIN_SITE_ORIGIN=https://실제_관리자_호스트
-NEXT_PUBLIC_ADMIN_SITE_URL=https://실제_관리자_호스트
+ADMIN_SITE_ORIGIN=https://paybridge-admin.evolvix.workers.dev
+NEXT_PUBLIC_ADMIN_SITE_URL=https://paybridge-admin.evolvix.workers.dev
 ```
 
 Origin은 `https://`와 호스트를 합한 주소입니다. `/admin` 같은 경로·쿼리·`*`는 붙이지 않습니다. 기존 Firebase 서버 설정, `NEXT_PUBLIC_FIREBASE_*`, 운영 Aiven의 `MYSQL_*`, 기존 TLS·CA 설정은 유지합니다. 이 서버 비밀값을 GitHub 공개 Variables나 관리자 앱에 복사하지 않습니다.
@@ -166,7 +166,7 @@ API 키에 HTTP referrer 제한을 걸어 뒀다면 해당 기존 키에도 실�
 
 ## 7. 최초 PR 병합과 배포 확인
 
-다음을 준비한 뒤 [PR #1](https://github.com/wevolmina/paybridge-mock/pull/1)을 `main`에 병합합니다.
+현재 PR #1·PR #2는 병합됐습니다. 다음 신규 변경부터는 아래 준비와 PR 검사를 확인한 뒤 main에 병합합니다.
 
 - GitHub Variables 4개·Secrets 2개 등록.
 - 실제 Cloudflare 관리자 주소 확인.
@@ -210,7 +210,7 @@ GitHub 변수·Secret만 바꾸면 푸시 이벤트가 생기지 않습니다. �
 | `apps/merchant/vercel.json` | Vercel Git 자동 배포 허용·모노레포 빌드 명령 |
 | `apps/admin/wrangler.jsonc` | Worker 이름·SPA 정적 파일 설정 |
 
-Firebase 배포는 공식 Hosting 액션의 `channelId: live`를 사용합니다. Firestore·Auth를 함께 배포하는 루트 `deploy:firebase` 스크립트는 이 자동화에서 호출하지 않습니다. Cloudflare는 npm lockfile에 설치된 Wrangler로 `apps/admin/dist`만 배포합니다. 외부 액션은 확인한 커밋 SHA로 고정했습니다.
+Firebase 배포는 공식 Hosting 액션의 `channelId: live`를 사용합니다. `package-lock.json`도 저장소에 반영했습니다. 첫 GitHub 검사에서 고정 파일 누락을 수정한 뒤, 깨끗한 환경의 `npm ci`·테스트·세 앱 빌드가 통과했습니다. Firestore·Auth를 함께 배포하는 루트 `deploy:firebase` 스크립트는 이 자동화에서 호출하지 않습니다. Cloudflare는 npm lockfile에 설치된 Wrangler로 `apps/admin/dist`만 배포합니다. 외부 액션은 확인한 커밋 SHA로 고정했습니다.
 
 ## 10. 오류 해결과 화면 확인
 
@@ -219,7 +219,7 @@ Firebase 배포는 공식 Hosting 액션의 `channelId: live`를 사용합니다
 | Actions 메뉴·Run workflow가 없음 | main에 워크플로가 병합됐는지, Actions가 허용됐는지 확인 |
 | `missing or placeholder` | 표시된 이름의 Repository Variable 확인. 한글 예시를 실제 값으로 바꾸기 |
 | Firebase Secret JSON 오류·wrong project | JSON 전체인지, `project_id=paybridge-mock`인지 확인 |
-| Firebase 403 | 배포 전용 서비스 계정의 Hosting·CLI 조회 권한과 키 유효성 확인 |
+| Firebase 403 | 실제 누락 권한은 `serviceusage.services.get`. 기존 배포 서비스 계정에 `Service Usage Viewer`를 추가한 뒤 실패 작업 재실행. Owner·Editor를 새로 줄 필요 없음 |
 | Cloudflare 인증·권한 오류 | API 토큰 Secret, Account ID Variable, 대상 계정·Workers 권한 확인 |
 | 배포 성공인데 관리자 조회 실패 | Vercel의 관리자 Origin·실제 운영 주소·최신 서버 배포 확인 |
 | CORS 오류 | 관리자 주소와 Vercel `ADMIN_SITE_ORIGIN` 비교. Preview URL과 운영 URL 혼동 주의 |
@@ -237,19 +237,21 @@ Firebase 배포는 공식 Hosting 액션의 `channelId: live`를 사용합니다
 
 이번 변경은 Node.js 22.23.4에서 단위 테스트 **31개**와 세 앱 빌드를 통과했습니다. 잘못된 프로젝트·설정 누락·비밀값 비노출을 확인하는 배포 설정 테스트 4개를 포함합니다. actionlint 1.7.12로 워크플로 문법을 검사했고, 경로 필터·고정 액션 SHA·main 배포 제한을 점검했습니다. 실제 업로드 없는 관리자 사전 검사도 통과했습니다.
 
-GitHub에 새 Actions 실행이 생성됐는지도 최초 연결 시 확인해야 합니다. 로컬 워크플로 검사와 실제 GitHub 실행은 별개입니다.
+실제 GitHub PR 검사와 main 검사를 확인했습니다. Cloudflare Actions는 성공했으며 고객 Firebase Actions는 게시 단계의 API 조회 권한 부족으로 실패했습니다. 로컬 검사·빌드 성공과 실제 게시 성공은 별개입니다.
 
 운영 성공으로 표시하려면 GitHub Secrets·Variables 등록 후 **최초 Firebase·Cloudflare Actions 성공**, Vercel **Production Ready**, 운영 관리자 로그인·조회까지 따로 확인해야 합니다. 문서 저장이나 CI 성공만으로 운영 배포 완료라고 기록하지 않습니다.
 
 | 기록 항목 | 실제 확인 후 입력 |
 | --- | --- |
-| GitHub 변수·Secret 등록 | |
-| 관리자 실제 URL | |
-| main 병합 커밋 | |
-| Firebase Actions 실행 URL·성공 | |
-| Cloudflare Actions 실행 URL·성공 | |
-| Vercel Production 배포 URL·Ready | |
-| 기존 `/admin` 이동·관리자 조회 | |
+| GitHub 변수·Secret 등록 | 두 배포 작업 모두 설정 사전 검사 통과. Secret 실제 값은 읽지 않음 |
+| 관리자 실제 URL | https://paybridge-admin.evolvix.workers.dev/ |
+| main 병합 커밋 | `21073fefa08613a375cbd9c24d1745e77afd7a5d` |
+| Firebase Actions 실행 URL·성공 | [실행 기록](https://github.com/wevolmina/paybridge-mock/actions/runs/40160606416), 권한 부족으로 실패 |
+| Cloudflare Actions 실행 URL·성공 | [실행 기록](https://github.com/wevolmina/paybridge-mock/actions/runs/40160606456), 성공. 버전 `20009ec2-5f38-4485-a707-039f23042106` |
+| Vercel Production 배포 URL·Ready | [배포 상세](https://vercel.com/wevolmina94-9986/paybridge-mock/EDwRkhXJLfmTjS55krBqidVkKi3x), Ready 확인 |
+| 기존 `/admin` 이동·관리자 조회 | 이동 307·정확한 관리자 Origin 204·다른 Origin 403·토큰 없는 조회 403. 관리자 실계정의 양성 조회는 미시험 |
+
+상세 진행 결과: [2026-10-25 배포 기록](DEPLOYMENT_PROGRESS_2026-10-25.md).
 
 ## 공식 참고
 

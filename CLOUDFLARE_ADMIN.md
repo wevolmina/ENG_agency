@@ -1,6 +1,6 @@
 # 관리자 사이트를 Cloudflare로 분리
 
-기준: 2026-10-25 한국 시간. 코드와 로컬 검증 완료. GitHub 작업 브랜치와 [PR #1](https://github.com/wevolmina/paybridge-mock/pull/1)에 반영했으며, main 병합·운영 배포·실계정 접속 검증은 아직 완료하지 않았다.
+기준: 2026-10-25 한국 시간. 코드와 로컬 검증 완료. PR #1·PR #2 병합과 관리자 Cloudflare·판매자 Vercel 운영 배포를 확인했다. 고객 Firebase 자동 배포는 API 조회 권한 보완이 필요하며 관리자 실계정 조회는 미시험이다.
 
 직접 배포할 때는 [자동 배포 안내서](docs/AUTO_DEPLOYMENT.md)를 순서대로 따른다. GitHub Actions의 변수·Secret 등록, 최초 관리자 주소 확보, PR 병합과 세 사이트 자동 배포 확인을 포함한다.
 
@@ -110,12 +110,11 @@ npm run dev:admin
 
 ## 배포 진행 상태
 
-- 소스와 문서는 `feat/admin-cloudflare-ui-release` 및 PR #1에 반영한다. 새 관리자 주소를 준비하기 전 main 병합은 보류한다.
-- Cloudflare 자동 배포는 `.github/workflows/deploy-cloudflare.yml`의 GitHub Actions 경로로 구성했다. main의 관리자·공통 코드 변경을 배포하며 별도 Workers Builds Git 연결은 사용하지 않는다.
-- Firebase 고객 화면은 `.github/workflows/deploy-firebase.yml`에서 Hosting live만 배포한다. Auth·Firestore·Functions는 배포하지 않는다.
-- Vercel 자동 Git 배포는 `git.deploymentEnabled: true`다. 이전 커밋의 미리보기 자동 배포 성공을 확인했으며 운영 main 배포와 구분한다.
-- GitHub Variables 4개·Secrets 2개의 실제 등록과 첫 Firebase·Cloudflare 운영 실행은 별도 확인 대상이다. 이 작업 환경에서 실제 Worker 생성·운영 배포는 수행하지 않았다.
-
-최초 설정·관리자 실제 주소 확보 → Vercel 두 관리자 주소·Firebase 도메인 설정 → PR 병합 → Firebase·Cloudflare Actions와 Vercel Production 결과 확인 → 운영 로그인·권한 확인 순서다. 일상적인 반복 배포는 main 변경으로 실행한다.
+- PR #1·PR #2 병합 완료. 배포 코드 main은 `21073fe`다.
+- Cloudflare 자동 배포 성공: https://paybridge-admin.evolvix.workers.dev/ . Worker 버전 `20009ec2-5f38-4485-a707-039f23042106`.
+- Vercel의 두 관리자 주소 변수를 실제 Origin으로 저장하고 Production Ready를 확인했다. 기존 `/admin`의 307 이동, 허용 Origin의 204, 다른 Origin과 비로그인 조회의 403을 확인했다.
+- 고객 Firebase는 설정 검사·설치·테스트·빌드 후 게시 단계에서 `serviceusage.services.get` 부족으로 실패했다. 기존 배포 계정의 Service Usage Viewer 역할 보완 후 재실행한다.
+- Firebase 새 관리자 도메인 승인은 아직 저장하지 않았다. 실제 계정의 관리자 자료 조회·변경은 미시험이다.
+- [상세 진행 기록](docs/DEPLOYMENT_PROGRESS_2026-10-25.md).
 
 공식 참고: [Cloudflare Static Assets](https://developers.cloudflare.com/workers/static-assets/) · [SPA 라우팅](https://developers.cloudflare.com/workers/static-assets/routing/single-page-application/) · [Wrangler 설정](https://developers.cloudflare.com/workers/wrangler/configuration/).

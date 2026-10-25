@@ -1,4 +1,4 @@
-> 2026-10-25 관리자 분리: 관리자 화면은 `apps/admin`의 Cloudflare 전용 앱으로 이동했습니다. 판매자·API는 Vercel에 유지합니다. [자동 배포 안내서](docs/AUTO_DEPLOYMENT.md)와 [구조·검증 기록](CLOUDFLARE_ADMIN.md)을 확인하세요. 운영 배포는 아직 미완료입니다.
+> 2026-10-25 관리자 분리: 관리자 화면은 `apps/admin`의 Cloudflare 전용 앱으로 이동했습니다. 판매자·API는 Vercel에 유지합니다. [자동 배포 안내서](docs/AUTO_DEPLOYMENT.md)와 [구조·검증 기록](CLOUDFLARE_ADMIN.md)을 확인하세요. 관리자·판매자 운영 배포를 확인했습니다. 고객 Firebase 자동 배포는 서비스 계정의 API 조회 권한 보완이 필요합니다.
 
 # Paybridge 모의 결제
 
@@ -6,6 +6,7 @@ Firestore는 주문 요청을 접수하고 MySQL은 확정 주문·항목·결�
 
 - 고객 화면: https://paybridge-mock.web.app
 - 판매자 화면: https://paybridge-mock.vercel.app
+- 관리자 화면: https://paybridge-admin.evolvix.workers.dev
 - [MySQL Workbench Community 무료 다운로드](https://dev.mysql.com/downloads/workbench/) — 설치·DB 연결 후 MySQL 테이블을 확인합니다.
 - [구현 보고서와 소스 링크](docs/IMPLEMENTATION-REPORT.md)
 - [클릭형 소스 설명](docs/IMPLEMENTATION-REPORT.html): 내려받아 브라우저에서 열기
