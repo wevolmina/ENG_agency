@@ -1,4 +1,4 @@
-> 2026-10-25 관리자 분리: 관리자 화면은 `apps/admin`의 Cloudflare 전용 앱으로 이동했습니다. 판매자·API는 Vercel에 유지합니다. [자동 배포 안내서](docs/AUTO_DEPLOYMENT.md)와 [구조·검증 기록](CLOUDFLARE_ADMIN.md)을 확인하세요. 관리자·판매자 운영 배포를 확인했습니다. 고객 Firebase 자동 배포는 서비스 계정의 API 조회 권한 보완이 필요합니다.
+> 2026-10-25 관리자 분리: 관리자 화면은 `apps/admin`의 Cloudflare 전용 앱으로 이동했습니다. 판매자·API는 Vercel에 유지합니다. [자동 배포 안내서](docs/AUTO_DEPLOYMENT.md)와 [구조·검증 기록](CLOUDFLARE_ADMIN.md)을 확인하세요. 관리자·판매자 운영 배포를 확인했습니다. 고객 Firebase도 서비스 계정 권한 보완 후 자동 배포에 성공했습니다. [최종 배포 기록](docs/DEPLOYMENT_PROGRESS_2026-10-25.md)을 확인하세요.
 
 # Paybridge 모의 결제
 
@@ -34,7 +34,7 @@ npm run dev:merchant
 
 고객·관리자 배포는 변경 경로에 따라 실행합니다. `packages/staff-ui`·루트 의존성 변경은 두 Actions의 배포 대상입니다. Vercel에서도 공통 코드 변경 시 새 빌드·Ready를 확인합니다. GitHub 변수·Secret만 수정했다면 해당 배포 작업의 Run workflow에서 main을 선택합니다.
 
-Firebase 자동화는 Hosting만 배포합니다. 기존 `deploy:firebase` 스크립트는 Firestore·Auth도 대상으로 하므로 이 자동화에서는 호출하지 않습니다. MySQL·Firebase 서버 인증 설정은 Vercel에 유지하고 관리자 앱에는 공개 웹 설정만 포함합니다. 실제 Firebase·Cloudflare 운영 성공은 최초 연결 후 확인해야 합니다.
+Firebase 자동화는 Hosting만 배포합니다. 기존 `deploy:firebase` 스크립트는 Firestore·Auth도 대상으로 하므로 이 자동화에서는 호출하지 않습니다. MySQL·Firebase 서버 인증 설정은 Vercel에 유지하고 관리자 앱에는 공개 웹 설정만 포함합니다. Firebase·Cloudflare 운영 자동 배포 성공을 확인했습니다. 각 앱의 전체 기능 확인은 배포 상태와 별도로 진행합니다.
 
 ## DB 책임과 재시도
 
