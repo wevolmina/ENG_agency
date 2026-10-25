@@ -1,6 +1,8 @@
 # 관리자 사이트를 Cloudflare로 분리
 
-기준: 2026-10-25 한국 시간. 코드와 로컬 검증 완료. GitHub 원격 반영·운영 배포·실계정 접속 검증은 아직 완료하지 않았다.
+기준: 2026-10-25 한국 시간. 코드와 로컬 검증 완료. GitHub 작업 브랜치와 [PR #1](https://github.com/wevolmina/paybridge-mock/pull/1)에 반영했으며, main 병합·운영 배포·실계정 접속 검증은 아직 완료하지 않았다.
+
+직접 배포할 때는 [Windows 직접 배포 안내서](docs/MANUAL_DEPLOYMENT.md)를 순서대로 따른다. 명령어·설정 입력 위치·PR 병합·Vercel 수동 배포·완료 확인·오류 해결을 포함한다.
 
 |사용자|호스팅|소스|역할|
 |---|---|---|---|
@@ -106,11 +108,12 @@ npm run dev:admin
 
 브라우저 업무 자료와 로그인은 시험용 응답이다. 운영 DB 변경, 실제 계정의 관리자 권한 시험, Cloudflare 운영 사이트 접속 시험과 구분한다. 이번 실행 환경은 Node.js 24와 Linux Chromium이며, 권장 Node.js 22 재실행은 별도 확인하지 않았다.
 
-## 현재 배포를 막는 항목
+## 배포 진행 상태
 
-- 작업 환경의 Cloudflare CLI가 로그인되어 있지 않다. `wrangler whoami` 결과가 미인증이며 실제 Worker는 생성하지 않았다.
-- 앞선 GitHub 업로드는 `wevolmina/paybridge-mock`의 연결 권한 오류(403)로 중단된 상태다. 이번 소스도 원격에 반영했다고 표시하지 않는다.
+- GitHub 권한 연결 후 소스를 `feat/admin-cloudflare-ui-release`에 업로드하고 PR #1을 생성했다. 앞선 403 오류는 해소됐다.
+- 이 작업 환경에서는 Cloudflare 실제 Worker를 생성하지 않았다. 사용자가 직접 배포하는 방식으로 전환했다. 사용자 PC에서는 Wrangler 인증을 별도로 확인한다.
+- `apps/merchant/vercel.json`의 `git.deploymentEnabled`는 `false`다. main 병합 후에도 안내서의 CLI 명령으로 Vercel을 수동 배포해야 한다.
 
-두 인증이 준비되면 Cloudflare 관리자 배포 → 실제 URL 확정 → Vercel 환경 변수·서버 배포 → Firebase 도메인 및 구매자 Hosting 반영 → 운영 로그인/권한 확인 순서로 진행한다.
+Cloudflare 관리자 배포 → 실제 URL 확정 → Vercel 환경 변수·Firebase 도메인 설정 → PR 병합 → Vercel 수동 배포 → 고객 Hosting 배포 → 운영 로그인·권한 확인 순서로 진행한다.
 
 공식 참고: [Cloudflare Static Assets](https://developers.cloudflare.com/workers/static-assets/) · [SPA 라우팅](https://developers.cloudflare.com/workers/static-assets/routing/single-page-application/) · [Wrangler 설정](https://developers.cloudflare.com/workers/wrangler/configuration/).
