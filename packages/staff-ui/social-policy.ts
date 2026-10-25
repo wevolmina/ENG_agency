@@ -1,5 +1,7 @@
 export const socialResultErrors = ["SOCIAL_CANCELLED", "SOCIAL_NOT_CONFIGURED", "SOCIAL_LOGIN_FAILED",
-  "SOCIAL_TOKEN_EXCHANGE_FAILED", "SOCIAL_PROFILE_FAILED", "SOCIAL_FIREBASE_TOKEN_FAILED", "SOCIAL_PROVIDER_CONFIG_ERROR"] as const;
+  "SOCIAL_TOKEN_EXCHANGE_FAILED", "SOCIAL_PROFILE_FAILED", "SOCIAL_FIREBASE_TOKEN_FAILED", "SOCIAL_PROVIDER_CONFIG_ERROR",
+  "SOCIAL_KAKAO_KOE009","SOCIAL_KAKAO_KOE010","SOCIAL_KAKAO_KOE101","SOCIAL_KAKAO_KOE114",
+  "SOCIAL_KAKAO_KOE126","SOCIAL_KAKAO_KOE127","SOCIAL_KAKAO_KOE303","SOCIAL_KAKAO_KOE320"] as const;
 const clientErrors = ["auth/popup-closed-by-user", "auth/cancelled-popup-request", "auth/popup-blocked", "POPUP_BLOCKED",
   "auth/account-exists-with-different-credential", "auth/credential-already-in-use", "auth/email-already-in-use",
   "auth/operation-not-allowed", "auth/unauthorized-domain", "auth/invalid-api-key", "auth/app-not-authorized",
@@ -35,6 +37,11 @@ export function socialErrorMessage(error: unknown) {
   if (code === "auth/operation-not-allowed") return "Firebase에서 이 로그인 방법이 활성화되지 않았습니다. 사이트 운영자가 로그인 제공업체 설정을 확인해야 합니다.";
   if (["auth/invalid-api-key", "auth/app-not-authorized", "auth/custom-token-mismatch"].includes(code))
     return "사이트의 Firebase 연결 설정이 올바르지 않습니다. 세 사이트와 로그인 서버가 같은 프로젝트를 사용하는지 확인해야 합니다.";
+  if (code==="SOCIAL_KAKAO_KOE010") return "카카오 클라이언트 시크릿이 일치하지 않습니다. 사이트 운영자가 Vercel의 KAKAO_CLIENT_SECRET을 카카오 앱의 클라이언트 시크릿과 맞춰야 합니다.";
+  if (["SOCIAL_KAKAO_KOE101","SOCIAL_KAKAO_KOE114"].includes(code)) return "카카오 앱 키가 올바르지 않거나 로그인 요청과 다른 앱의 키입니다. 사이트 운영자가 같은 앱의 REST API 키를 확인해야 합니다.";
+  if (code==="SOCIAL_KAKAO_KOE303") return "카카오 로그인 요청과 토큰 요청의 돌아올 주소가 다릅니다. 사이트 운영자가 콜백 주소를 확인해야 합니다.";
+  if (code==="SOCIAL_KAKAO_KOE320") return "카카오 로그인 확인 코드가 만료되었거나 이미 사용되었습니다. 새 로그인 창으로 다시 시도해 주세요.";
+  if (["SOCIAL_KAKAO_KOE009","SOCIAL_KAKAO_KOE126","SOCIAL_KAKAO_KOE127"].includes(code)) return "카카오 앱의 플랫폼 또는 API 호출 제한에 의해 연결이 거절되었습니다. 사이트 운영자가 카카오 앱 설정을 확인해야 합니다.";
   if (["SOCIAL_TOKEN_EXCHANGE_FAILED", "SOCIAL_PROVIDER_CONFIG_ERROR"].includes(code))
     return "로그인 제공업체가 연결 요청을 거절했습니다. 사이트 운영자가 앱 키·시크릿과 로그인 후 돌아올 주소를 확인해야 합니다.";
   if (code === "SOCIAL_PROFILE_FAILED") return "로그인 제공업체에서 계정 정보를 확인하지 못했습니다. 사이트 운영자가 계정 정보 조회 설정을 확인해야 합니다.";

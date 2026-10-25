@@ -1,6 +1,6 @@
 {
   "dateKST": "2026-10-25",
-  "unitTestsPassed": 71,
+  "unitTestsPassed": 73,
   "buildsPassed": [
     "customer",
     "merchant",
@@ -22,16 +22,16 @@
   "productionGoogleFailureReproduced": true,
   "exactProductionGoogleCode": "auth/unauthorized-domain",
   "providerAuthenticationCompleted": false,
-  "providerSettingsChanged": false,
+  "providerSettingsChanged": true,
   "productionRoleWrites": false,
-  "deploymentStatus": "success",
+  "deploymentStatus": "pending-current-update",
   "sourceCommit": "8ce312204ade21d2eaea43ee95365233a9b8940a",
   "pullRequest": "https://github.com/wevolmina/paybridge-mock/pull/8",
-  "actualFirebaseSellerDomainMissing": true,
+  "actualFirebaseSellerDomainMissing": false,
   "googleProviderEnabled": true,
-  "domainAdditionPreparedNotSaved": true,
+  "domainAdditionPreparedNotSaved": false,
   "kakaoAccountAuthenticationReachedConsent": true,
-  "kakaoConsentSubmitted": false,
+  "kakaoConsentSubmitted": true,
   "naverLiveAuthenticationTested": false,
   "deployments": {
     "vercel": "https://vercel.com/wevolmina94-9986/paybridge-mock/CTY1ZvRv4BHQN2KLGLm3g4CuMVk8",
@@ -40,5 +40,11 @@
     "mainChecksRun": 40195676626,
     "prChecksRun": 40195533234,
     "allSucceeded": true
-  }
+  },
+  "sellerDomainSaved": true,
+  "kakaoTokenExchangeObserved": "SOCIAL_TOKEN_EXCHANGE_FAILED",
+  "sellerGooglePassedDomainCheck": true,
+  "sellerGoogleDeviceVerificationPending": true,
+  "naverUiHidden": true,
+  "credentialValuesReadOrChangedByAgent": false
 }

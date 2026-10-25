@@ -1,8 +1,9 @@
 import {createHash, createHmac, randomBytes, timingSafeEqual} from "node:crypto";
 import {z} from "zod";
 
+const kakaoTokenCodes=["KOE009","KOE010","KOE101","KOE114","KOE126","KOE127","KOE303","KOE320"] as const;
 class SocialFlowError extends Error {
-  constructor(public code:"SOCIAL_TOKEN_EXCHANGE_FAILED"|"SOCIAL_PROFILE_FAILED") {super(code)}
+  constructor(public code:string) {super(code)}
 }
 export type SocialEnv = Record<string, string | undefined>;
 export type SocialProvider = "kakao" | "naver";
@@ -40,8 +41,8 @@ function stateSecret(env: SocialEnv) {
 }
 function credentials(provider: SocialProvider, env: SocialEnv) {
   return provider === "kakao"
-    ? {id: env.KAKAO_REST_API_KEY, secret: env.KAKAO_CLIENT_SECRET}
-    : {id: env.NAVER_CLIENT_ID, secret: env.NAVER_CLIENT_SECRET};
+    ? {id: env.KAKAO_REST_API_KEY?.trim(), secret: env.KAKAO_CLIENT_SECRET?.trim()}
+    : {id: env.NAVER_CLIENT_ID?.trim(), secret: env.NAVER_CLIENT_SECRET?.trim()};
 }
 export function socialConfiguration(env: SocialEnv) {
   const base = !!(stateSecret(env) && apiOrigin(env) && env.FIREBASE_PROJECT_ID &&
@@ -135,7 +136,13 @@ export async function exchangeSocialCode(provider: SocialProvider, code: string,
     ? "https://kauth.kakao.com/oauth/token" : "https://nid.naver.com/oauth2.0/token",
     {method: "POST", headers: {"Content-Type": "application/x-www-form-urlencoded"},
       body, cache: "no-store", redirect: "error", signal: AbortSignal.timeout(8000)});
-  if (!response.ok) throw new SocialFlowError("SOCIAL_TOKEN_EXCHANGE_FAILED");
+  if (!response.ok) {
+    const body:unknown=await response.json().catch(()=>null);
+    const code=body&&typeof body==="object"&&"error_code" in body?(body as {error_code:unknown}).error_code:null;
+    // Report only documented public codes. Provider descriptions may contain credentials or auth codes.
+    if(provider==="kakao"&&typeof code==="string"&&(kakaoTokenCodes as readonly string[]).includes(code))throw new SocialFlowError("SOCIAL_KAKAO_"+code);
+    throw new SocialFlowError("SOCIAL_TOKEN_EXCHANGE_FAILED");
+  }
   const token = z.object({access_token: z.string().min(1).max(8192)}).safeParse(await response.json());
   if (!token.success) throw new SocialFlowError("SOCIAL_TOKEN_EXCHANGE_FAILED");
   const profileResponse = await fetcher(provider === "kakao"
