@@ -15,7 +15,7 @@ const products=[{id:"bedroom-lighting",name:"편안한 밤 조명 패키지",pri
   {channel:process.env.PLAYWRIGHT_CHANNEL||"msedge"})});
  const errors=[],results={method:"Local apps with intercepted provider/Auth/business data; no production writes"};
  try{
-  async function context({ready=true,blocked=false,guestOrder=false}={}){
+  async function context({ready=true,blocked=false,guestOrder=false,merchantAllowed=false}={}){
    const ctx=await browser.newContext();
    const calls=[];
    if(blocked)await ctx.addInitScript(()=>{window.open=()=>null});
@@ -41,6 +41,12 @@ const products=[{id:"bedroom-lighting",name:"편안한 밤 조명 패키지",pri
      'document.getElementById("send").onclick=()=>window.opener.postMessage('+JSON.stringify(data)+','+JSON.stringify(origin)+');</script>'});
    });
    await ctx.route("**/api/admin/overview",r=>r.fulfill({headers:cors,status:403,json:{error:"ADMIN_ACCESS_REQUIRED"}}));
+   await ctx.route("**/api/payments",r=>{
+    assert.match(r.request().headers().authorization||"",/^Bearer /,"merchant reads require Firebase ID token");
+    return r.fulfill({headers:cors,status:merchantAllowed?200:403,json:merchantAllowed?
+      {merchantId:"fixture-store",totals:{count:0,revenue:0,average:0},payments:[],asOf:new Date().toISOString()}:
+      {error:"MERCHANT_ACCESS_REQUIRED"}});
+   });
    await ctx.route("**/api/cart-checkout",r=>{
     if(!guestOrder)throw Error("Unexpected order write in login test");
     if(r.request().method()==="OPTIONS")return r.fulfill({status:204,headers:cors});
@@ -98,8 +104,42 @@ const products=[{id:"bedroom-lighting",name:"편안한 밤 조명 패키지",pri
   if(process.env.QA_FONT_CSS)await page.addStyleTag({content:fs.readFileSync(process.env.QA_FONT_CSS,"utf8")+'\nbody{font-family:"Noto Sans KR",sans-serif!important}'});
   await page.evaluate(()=>document.fonts.ready);
   await page.screenshot({path:out+"/admin-social-mobile.png",fullPage:true});
-  await page.goto(seller);assert.equal(await page.locator(".social-login").count(),0,"seller remains email-only");
-  results.sellerUnchanged=true;await ctx.close();
+  await ctx.close();
+
+  for(const [provider,merchantAllowed] of [["카카오",false],["네이버",true]]){
+   ({ctx,page,calls}=await context({merchantAllowed}));
+   await page.goto(seller);
+   await page.getByRole("heading",{name:"판매자 센터 로그인",exact:true}).waitFor();
+   const sellerPopup=page.waitForEvent("popup");
+   await page.getByRole("button",{name:provider+"로 계속하기",exact:true}).click();
+   const loginPopup=await sellerPopup;await loginPopup.locator("#send").waitFor();
+   assert.equal(await page.getByRole("textbox",{name:"이메일",exact:true}).isEnabled(),false);
+   assert.equal(calls.length,0,"wrong popup nonce cannot sign in a seller");
+   await loginPopup.locator("#send").click();
+   if(merchantAllowed){
+    await page.getByText("마지막으로 확인한 모의 거래",{exact:true}).waitFor();
+    assert.match(await page.locator(".metrics").innerText(),/누적 모의 매출/);
+   }else{
+    await page.getByText("판매자 권한이 없습니다. 승인된 계정으로 로그인해 주세요.",{exact:true}).waitFor();
+    assert.equal(await page.locator("#transactions .approved").count(),0);
+    assert(!/99,000/.test(await page.locator(".metrics").innerText()));
+   }
+   assert.equal(calls.length,1);
+   assert.equal(await page.locator(".admin-package-grid").count(),0);
+   await page.getByRole("button",{name:"로그아웃",exact:true}).click();
+   await page.getByRole("heading",{name:"판매자 센터 로그인",exact:true}).waitFor();
+   assert.equal(await page.getByRole("button",{name:"로그인",exact:true}).isEnabled(),true);
+   assert.equal(await page.getByRole("button",{name:"구글로 계속하기",exact:true}).isEnabled(),true);
+   for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:900});
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,"seller overflow "+width)}
+   await page.setViewportSize({width:1440,height:960});
+   if(process.env.QA_FONT_CSS)await page.addStyleTag({content:fs.readFileSync(process.env.QA_FONT_CSS,"utf8")+'\nbody{font-family:"Noto Sans KR",sans-serif!important}'});
+   await page.evaluate(()=>document.fonts.ready);
+   await page.screenshot({path:out+"/seller-social-"+merchantAllowed+".png",fullPage:true});
+   await ctx.close();
+  }
+  results.sellerSocialLoginDeniedWithoutMembership=true;
+  results.sellerSocialLoginWithMembership=true;results.sellerEmailFallbackAndLayout=true;
 
   ({ctx,page}=await context({guestOrder:true}));
   await page.goto(customer);

@@ -22,10 +22,10 @@ function callback(provider = "kakao", overrides = "") {
     target.searchParams.get("state") + "&code=fixture-code" + overrides,
     {headers: {cookie: response.headers.get("set-cookie")!.split(";")[0]}});
 }
-test("social config fails closed, exposes readiness only, exact customer/admin origins", async () => {
+test("social config fails closed, exposes readiness only, exact customer/admin/merchant origins", async () => {
   assert.deepEqual(socialConfiguration({}), {google: false, kakao: false, naver: false});
   assert.equal(socialConfiguration({...env, NAVER_CLIENT_SECRET: ""}).naver, false);
-  for (const allowed of [origin, env.ADMIN_SITE_ORIGIN!]) {
+  for (const allowed of [origin, env.ADMIN_SITE_ORIGIN!, api]) {
     const r = socialConfigResponse(new Request(api, {headers: {origin: allowed}}), env);
     assert.equal(r.status, 200);
     assert.equal(r.headers.get("access-control-allow-origin"), allowed);
@@ -34,6 +34,46 @@ test("social config fails closed, exposes readiness only, exact customer/admin o
   assert.equal(socialConfigResponse(new Request(api, {headers: {origin: "https://evil.example"}}), env).status, 403);
   assert(!socialOrigins({...env, ADMIN_SITE_ORIGIN: "https://evil.example/path"}).has("https://evil.example"));
   assert(!socialOrigins({...env, ADMIN_SITE_ORIGIN: "http://localhost:3000"}).has("http://localhost:3000"));
+});
+test("merchant same-origin config works without Origin; other sites and missing metadata stay rejected", async () => {
+  const r = socialConfigResponse(new Request(api + "/api/auth/social/config", {
+    headers: {"sec-fetch-site": "same-origin"},
+  }), env);
+  assert.equal(r.status, 200);
+  assert.deepEqual(await r.json(), {google: true, kakao: true, naver: true});
+  assert.match(r.headers.get("cache-control")!, /no-store/);
+  assert.match(r.headers.get("vary")!, /Sec-Fetch-Site/);
+  for (const site of ["cross-site", "same-site", "none"]) {
+    assert.equal(socialConfigResponse(new Request(api, {headers: {"sec-fetch-site": site}}), env).status, 403);
+  }
+  assert.equal(socialConfigResponse(new Request(api), env).status, 403);
+  assert.equal(socialConfigResponse(new Request("https://preview.example", {
+    headers: {"sec-fetch-site": "same-origin"},
+  }), env).status, 403);
+  assert.equal(socialConfigResponse(new Request(api, {headers: {
+    origin: "https://evil.example", "sec-fetch-site": "same-origin",
+  }}), env).status, 403);
+});
+test("merchant OAuth returns to the canonical seller origin and never grants a staff role", async () => {
+  for (const provider of ["kakao", "naver"] as const) {
+    const response = beginSocialLogin(new Request(api + "/api/auth/social/start?provider=" + provider +
+      "&origin=" + encodeURIComponent(api) + "&nonce=" + nonce), env, now);
+    assert.equal(response.status, 303);
+    const target = new URL(response.headers.get("location")!);
+    assert.equal(target.searchParams.get("redirect_uri"), api + "/api/auth/social/callback/" + provider);
+    const req = new Request(api + "/api/auth/social/callback/" + provider + "?state=" +
+      target.searchParams.get("state") + "&code=fixture-code", {headers: {
+        cookie: response.headers.get("set-cookie")!.split(";")[0],
+      }});
+    let calls = 0, claims: unknown;
+    const result = await finishSocialLogin(req, provider, env, async (_uid, c) => {
+      claims = c; return "header.payload.signature";
+    }, async () => Response.json(++calls === 1 ? {access_token: "provider-token"} :
+      provider === "kakao" ? {id: 123} : {resultcode: "00", response: {id: "subject"}}), now);
+    assert.equal(result.status, 200);
+    assert((await result.text()).includes(',"' + api + '")'));
+    assert.deepEqual(claims, {social_provider: provider});
+  }
 });
 test("OAuth start binds random state, intended origin and client nonce in secure HttpOnly cookie", () => {
   const r = start(), target = new URL(r.headers.get("location")!);
