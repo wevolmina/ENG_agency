@@ -60,7 +60,11 @@
     ],
     "providers": {
       "anonymous": true,
-      "emailPassword": true
+      "emailPassword": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "페이브릿지",
+        "supportEmail": "wevolmina94@gmail.com"
+      }
     }
   }
 }
