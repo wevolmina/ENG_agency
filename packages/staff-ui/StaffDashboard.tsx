@@ -10,6 +10,7 @@ import {
 } from "firebase/auth";
 import SocialLogin from "./SocialLogin";
 import StaffAccess from "./StaffAccess";
+import {PrivateInput,PrivateValue} from "./PrivateFields";
 import "./social-login.css";
 import { unseenOrderIds } from "./new-orders";
 type Package = {
@@ -388,17 +389,13 @@ export default function StaffDashboard({
                     required
                   />
                 </label>
-                <label>
-                  비밀번호
-                  <input
-                    type="password"
+                  <PrivateInput label="비밀번호" visibilityLabel="로그인 비밀번호"
                     autoComplete="current-password"
                     disabled={busy || socialBusy}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
-                </label>
                 <button className="primary" disabled={!configured || busy || socialBusy}>
                   {busy ? "확인 중…" : "로그인"}
                 </button>
@@ -406,9 +403,9 @@ export default function StaffDashboard({
             </section>
           ) : (
             <>
-              <label className="staff-account-id">내 계정 고유번호(UID)
-                <input readOnly value={user.uid} onFocus={e=>e.target.select()}/>
-              </label>
+              <div className="staff-account-id">내 계정 고유번호(UID)
+                <PrivateValue key={user.uid} value={user.uid} label="내 계정 고유번호"/>
+              </div>
               {admin && <StaffAccess auth={clientAuth()} user={user} apiOrigin={apiOrigin}
                 disabled={busy} onBusyChange={setAccessBusy} onChanged={()=>setRevision(v=>v+1)}/>}
               <div className="status-line">

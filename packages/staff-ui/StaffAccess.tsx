@@ -1,9 +1,10 @@
 "use client";
 import {useEffect,useRef,useState} from "react";
 import type {Auth,User} from "firebase/auth";
+import {PrivateInput,PrivateValue} from "./PrivateFields";
 import "./staff-access.css";
 type Role="merchant"|"admin";
-type Member={user_uid:string;role:Role;active:boolean|number};
+type Member={user_uid:string;role:Role;active:boolean|number;email?:string|null;emailStatus?:string};
 type Status={isMaster:boolean;canSetup:boolean;needsRecentLogin:boolean;masterUid?:string;merchantId?:string;members?:Member[];
   history?:{id:number;target_uid:string;role:Role;before_active:boolean|number|null;after_active:boolean|number;created_at:string}[]};
 type Account={uid:string;email:string|null;displayName:string|null;providers:string[];memberships:{role:Role;active:boolean;otherStore:boolean}[]};
@@ -75,7 +76,7 @@ export default function StaffAccess({auth,user,apiOrigin,disabled=false,onChange
    })}}>
    <h3>최초 마스터 계정 등록</h3>
    <p>지정된 구글 계정 확인이 완료되었습니다. 처음 한 번만 설정 비밀번호를 입력하세요. 등록 후 이 화면에서 다른 계정을 승인할 수 있습니다.</p>
-   <label>최초 설정 비밀번호<input type="password" autoComplete="off" maxLength={256} value={password} required disabled={locked||status.needsRecentLogin} onChange={e=>setPassword(e.target.value)}/></label>
+   <PrivateInput label="최초 설정 비밀번호" autoComplete="off" maxLength={256} value={password} required disabled={locked||status.needsRecentLogin} onChange={e=>setPassword(e.target.value)}/>
    <label className="access-check"><input type="checkbox" checked={includeMerchant} disabled={locked} onChange={e=>setIncludeMerchant(e.target.checked)}/>이 계정으로 판매자 사이트도 이용</label>
    <button className="primary" disabled={locked||status.needsRecentLogin||!password}>마스터 등록</button>
   </form>}
@@ -85,12 +86,12 @@ export default function StaffAccess({auth,user,apiOrigin,disabled=false,onChange
    <form className="access-form" onSubmit={e=>{e.preventDefault();void run(async()=>{
     setAccount(null);setConfirmed(false);const result=await request({action:"lookup",uid:target.trim()});setAccount(result.account);
    })}}>
-    <label>승인할 계정 고유번호(UID)<input value={target} maxLength={128} required autoComplete="off" disabled={locked||status.needsRecentLogin} onChange={e=>{setTarget(e.target.value);setAccount(null);setConfirmed(false)}}/></label>
+    <PrivateInput label="승인할 계정 고유번호(UID)" value={target} maxLength={128} required autoComplete="off" disabled={locked||status.needsRecentLogin} onChange={e=>{setTarget(e.target.value);setAccount(null);setConfirmed(false)}}/>
     <button type="submit" disabled={locked||status.needsRecentLogin||!target.trim()}>계정 확인</button>
    </form>
    {account&&<div className="access-review">
     <h3>승인할 계정 확인</h3>
-    <dl><dt>계정 고유번호</dt><dd>{account.uid}</dd><dt>이메일</dt><dd>{account.email||"제공되지 않음"}</dd>
+    <dl><dt>계정 고유번호</dt><dd><PrivateValue key={account.uid+":uid"} value={account.uid} label="승인할 계정 고유번호"/></dd><dt>이메일</dt><dd><PrivateValue key={account.uid+":email"} value={account.email} label="승인할 계정 이메일"/></dd>
      <dt>이름</dt><dd>{account.displayName||"제공되지 않음"}</dd></dl>
     <label>승인할 역할<select aria-label="승인할 역할" value={role} disabled={locked} onChange={e=>{setRole(e.target.value as Role);setConfirmed(false)}}><option value="merchant">판매자</option><option value="admin">관리자</option></select></label>
     {member?.otherStore?<p className="notice">{messages.ACCOUNT_OTHER_STORE}</p>:member?.active?<p>이 역할은 이미 승인되어 있습니다.</p>:<>
@@ -102,19 +103,23 @@ export default function StaffAccess({auth,user,apiOrigin,disabled=false,onChange
     </>}
    </div>}
    <h3>등록된 권한</h3><p>현재 상점의 최대 100개 권한을 표시합니다. 계정 확인으로 개별 계정을 조회할 수 있습니다.</p>
-   <ul className="access-members">{status.members?.map(m=><li key={m.user_uid+":"+m.role}>
-    <div><b>{roleName(m.role)} · {m.active?"승인됨":"해제됨"}</b><span>{m.user_uid}</span></div>
-    {m.user_uid===status.masterUid&&m.role==="admin"?<span>마스터 보호</span>:!!m.active&&<button type="button" disabled={locked||status.needsRecentLogin} aria-label={m.user_uid+" "+roleName(m.role)+" 권한 해제"} onClick={()=>setRevoke(m)}>권한 해제</button>}
+   <ul className="access-members">{status.members?.map((m,index)=><li key={m.user_uid+":"+m.role}>
+    <div><b>{roleName(m.role)} · {m.active?"승인됨":"해제됨"}</b><div className="access-member-fields">
+     <div className="access-member-field"><small>이메일</small><PrivateValue value={m.email} label={`계정 ${index+1} 이메일`} emptyText={m.emailStatus==="unavailable"?"조회하지 못함":m.emailStatus==="not_found"?"계정 없음":"제공되지 않음"}/></div>
+     <div className="access-member-field"><small>고유번호</small><PrivateValue value={m.user_uid} label={`계정 ${index+1} 고유번호`}/></div>
+    </div></div>
+    {m.user_uid===status.masterUid&&m.role==="admin"?<span>마스터 보호</span>:!!m.active&&<button type="button" disabled={locked||status.needsRecentLogin} aria-label={`계정 ${index+1} ${roleName(m.role)} 권한 해제`} onClick={()=>setRevoke(m)}>권한 해제</button>}
    </li>)}</ul>
    {revoke&&<div className="access-review" role="group" aria-label="권한 해제 확인">
-    <p>{revoke.user_uid} 계정의 {roleName(revoke.role)} 권한을 해제합니다. 해당 역할의 다음 자료 조회부터 접근이 차단됩니다.</p>
+    <p>아래 계정의 {roleName(revoke.role)} 권한을 해제합니다. 해당 역할의 다음 자료 조회부터 접근이 차단됩니다.</p>
+    <PrivateValue value={revoke.user_uid} label="해제할 계정 고유번호"/>
     <button type="button" disabled={locked||status.needsRecentLogin} onClick={()=>void run(async()=>{
      await request({action:"set",uid:revoke.user_uid,role:revoke.role,active:false,expectedActive:!!revoke.active});
      setRevoke(null);setAccount(null);await refresh();setNotice("권한을 해제했습니다.");callbacks.current.onChanged();
     })}>해제 확인</button><button type="button" disabled={locked} onClick={()=>setRevoke(null)}>취소</button>
    </div>}
    <h3>최근 승인·해제 이력</h3><ul className="access-history">{status.history?.length?status.history.map(h=><li key={h.id}>
-    <span>{h.target_uid}</span><b>{roleName(h.role)} · {h.after_active?"승인":"해제"}</b><small>{accessDate(h.created_at)} (한국 시간)</small>
+    <PrivateValue value={h.target_uid} label={`변경 이력 ${h.id} 계정 고유번호`}/><b>{roleName(h.role)} · {h.after_active?"승인":"해제"}</b><small>{accessDate(h.created_at)} (한국 시간)</small>
    </li>):<li>아직 변경 이력이 없습니다.</li>}</ul>
   </>}
   {error&&<p role="alert" className="social-error">{error}</p>}{notice&&<p role="status" className="access-notice">{notice}</p>}

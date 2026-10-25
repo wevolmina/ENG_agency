@@ -2,9 +2,9 @@ import type {Pool} from "mysql2/promise";
 import {adminCors,adminOptions,configuredAdminOrigin} from "./admin-http";
 import {AccessError,accessInput,accessMembers,accessStatus,bootstrapMaster,recentGoogle,requireMaster,setAccess,targetMemberships,type AccessIdentity} from "./staff-access";
 type Account={uid:string;email?:string;displayName?:string;disabled:boolean;providerData:{providerId:string}[]};
-type Dependencies={env:Record<string,string|undefined>;identity:(request:Request)=>Promise<AccessIdentity|null>;pool:()=>Pool;account:(uid:string)=>Promise<Account>;now?:()=>number};
+type Dependencies={env:Record<string,string|undefined>;identity:(request:Request)=>Promise<AccessIdentity|null>;pool:()=>Pool;account:(uid:string)=>Promise<Account>;accounts:(uids:string[])=>Promise<{users:{uid:string;email?:string}[]}>;now?:()=>number};
 export function createAccessHandlers(deps:Dependencies){
- const {env,identity,pool:connect,account:loadAccount,now=Date.now}=deps;
+ const {env,identity,pool:connect,account:loadAccount,accounts:loadAccounts,now=Date.now}=deps;
 function allowed(request:Request) {
   const origin=configuredAdminOrigin(env.ADMIN_SITE_ORIGIN);
   return !!origin && request.headers.get("origin")===origin;
@@ -20,7 +20,20 @@ async function GET(request:Request) {
     const user=await identity(request);
     if(!user)return failure(new AccessError("SIGN_IN_REQUIRED",401),headers);
     const pool=connect(),status=await accessStatus(pool,user,env,now());
-    return Response.json({...status,...(status.isMaster?await accessMembers(pool,user):{})},{headers});
+    if(!status.isMaster)return Response.json(status,{headers});
+    const details=await accessMembers(pool,user);
+    // The authenticated master can read emails for this shop only. Never serialize full UserRecords or secrets.
+    const ids=[...new Set(details.members.map(m=>String(m.user_uid)))];
+    let profiles:Map<string,{uid:string;email?:string}>|null=null;
+    let lookupTimer:ReturnType<typeof setTimeout>|undefined;
+    try{
+      const result=ids.length?await Promise.race([loadAccounts(ids),new Promise<never>((_resolve,reject)=>{lookupTimer=setTimeout(()=>reject(Error("PROFILE_LOOKUP_TIMEOUT")),5000)})]):{users:[]};
+      profiles=new Map(result.users.map(p=>[p.uid,p]));
+    }catch{/* Keep role management usable if Firebase profile lookup is unavailable. */}
+    finally{clearTimeout(lookupTimer)}
+    const members=details.members.map(m=>{const p=profiles?.get(m.user_uid);return {...m,email:p?.email||null,
+      emailStatus:profiles?(p?(p.email?"available":"not_provided"):"not_found"):"unavailable"}});
+    return Response.json({...status,...details,members},{headers});
   } catch(e) {return failure(e,headers)}
 }
 async function POST(request:Request) {

@@ -150,11 +150,12 @@ test("stale login cannot change membership even when UID is the master",async()=
 const adminOrigin="https://admin.example.invalid";
 function apiRequest(body:unknown,origin:string|null=adminOrigin,token=true){return new Request("https://api.example.invalid/api/admin/access",{
  method:"POST",headers:{...(origin?{origin}:{}),...(token?{authorization:"Bearer fixture-token"}:{}),"content-type":"application/json"},body:JSON.stringify(body)});}
-function http(db:ReturnType<typeof database>,user:AccessIdentity=owner,account?:(uid:string)=>Promise<any>){
+function http(db:ReturnType<typeof database>,user:AccessIdentity=owner,account?:(uid:string)=>Promise<any>,accounts?:(uids:string[])=>Promise<{users:{uid:string;email?:string}[]}>){
  let authCalls=0,accountCalls=0;
  const h=createAccessHandlers({env:{...env,ADMIN_SITE_ORIGIN:adminOrigin},pool:()=>db.pool,now:()=>now,
   identity:async request=>{authCalls++;return request.headers.get("authorization")==="Bearer fixture-token"?user:null},
-  account:async id=>{accountCalls++;return account?account(id):{uid:id,disabled:false,providerData:[{providerId:"google.com"}],email:"target@example.invalid"}}});
+  account:async id=>{accountCalls++;return account?account(id):{uid:id,disabled:false,providerData:[{providerId:"google.com"}],email:"target@example.invalid"}},
+  accounts:accounts|| (async ids=>({users:ids.map(uid=>({uid,email:"registered@example.invalid"}))}))});
  return {...h,get authCalls(){return authCalls},get accountCalls(){return accountCalls}};
 }
 test("HTTP blocks missing/external origin and unauthenticated callers before any database access",async()=>{
@@ -207,4 +208,30 @@ test("HTTP preflight permits only the configured admin origin and supported meth
  const h=http(database());
  for(const method of ["GET","POST"]){const r=h.OPTIONS(new Request("https://api.example.invalid/api/admin/access",{method:"OPTIONS",headers:{origin:adminOrigin,"access-control-request-method":method,"access-control-request-headers":"authorization,content-type"}}));assert.equal(r.status,204)}
  assert.equal(h.OPTIONS(new Request("https://api.example.invalid/api/admin/access",{method:"OPTIONS",headers:{origin:adminOrigin,"access-control-request-method":"DELETE"}})).status,403);
+});
+test("registered emails are batch-scoped to distinct current-shop UIDs and full Firebase records never escape",async()=>{
+ const db=await initialized(true);db.state.members["outsider:merchant"]={merchant_id:"other-shop",active:true};
+ let ids:string[]=[];
+ const h=http(db,owner,undefined,async input=>{ids=input;return {users:[{uid:owner.uid,email:"registered@example.invalid",passwordHash:"never-return",customClaims:{admin:true}} as any,{uid:"outsider",email:"outside@example.invalid"}]}});
+ const r=await h.GET(new Request("https://api.example.invalid/api/admin/access",{headers:{origin:adminOrigin,authorization:"Bearer fixture-token"}}));
+ const d=await r.json();assert.deepEqual(ids,[owner.uid]);assert.equal(d.members.length,2);
+ assert(d.members.every((m:any)=>m.email==="registered@example.invalid"&&m.emailStatus==="available"));
+ const body=JSON.stringify(d);for(const hidden of ["never-return","passwordHash","customClaims","outside@example.invalid"])assert(!body.includes(hidden));
+});
+test("Firebase email lookup failure keeps scoped roles available with an explicit unavailable status",async()=>{
+ const db=await initialized();
+ const h=http(db,owner,undefined,async()=>{throw Error("private-firebase-credential-detail")});
+ const r=await h.GET(new Request("https://api.example.invalid/api/admin/access",{headers:{origin:adminOrigin,authorization:"Bearer fixture-token"}}));
+ const d=await r.json();assert.equal(r.status,200);assert.equal(d.members[0].email,null);assert.equal(d.members[0].emailStatus,"unavailable");
+ assert(!JSON.stringify(d).includes("private-firebase-credential-detail"));
+});
+test("non-master account status never queries or exposes registered user emails",async()=>{
+ let calls=0;const h=http(database(),{...owner,uid:"ordinary-user"},undefined,async()=>{calls++;return {users:[]}});
+ const r=await h.GET(new Request("https://api.example.invalid/api/admin/access",{headers:{origin:adminOrigin,authorization:"Bearer fixture-token"}}));
+ const d=await r.json();assert.equal(calls,0);assert.equal(d.members,undefined);
+});
+test("slow Firebase email lookup times out without blocking the authorized role list",{timeout:10000},async()=>{
+ const db=await initialized(),h=http(db,owner,undefined,()=>new Promise(()=>{}));
+ const r=await h.GET(new Request("https://api.example.invalid/api/admin/access",{headers:{origin:adminOrigin,authorization:"Bearer fixture-token"}}));
+ const d=await r.json();assert.equal(r.status,200);assert.equal(d.members[0].emailStatus,"unavailable");
 });
