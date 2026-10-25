@@ -41,6 +41,7 @@ const products=[{id:"bedroom-lighting",name:"편안한 밤 조명 패키지",pri
      'document.getElementById("send").onclick=()=>window.opener.postMessage('+JSON.stringify(data)+','+JSON.stringify(origin)+');</script>'});
    });
    await ctx.route("**/api/admin/overview",r=>r.fulfill({headers:cors,status:403,json:{error:"ADMIN_ACCESS_REQUIRED"}}));
+   await ctx.route("**/api/admin/access",r=>r.fulfill({headers:cors,json:{isMaster:false,canSetup:false,needsRecentLogin:false}}));
    await ctx.route("**/api/payments",r=>{
     assert.match(r.request().headers().authorization||"",/^Bearer /,"merchant reads require Firebase ID token");
     return r.fulfill({headers:cors,status:merchantAllowed?200:403,json:merchantAllowed?

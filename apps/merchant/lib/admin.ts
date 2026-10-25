@@ -21,7 +21,7 @@ export async function authorizedUser(request: Request) {
     if(!response.ok)return null;
     const user=(await response.json()).users?.[0];
     if(!accountIsActive(user,claims))return null;
-    return {uid:claims.uid,claims,token};
+    return {uid:claims.uid,claims,token,email:typeof user.email==="string"?user.email:null,emailVerified:user.emailVerified===true};
   }
   catch {return null;}
 }
