@@ -229,3 +229,19 @@ test("browser accepts only whitelisted stage codes with the matching nonce",()=>
  }
  assert.equal(readSocialResult({type:"paybridge-social-login",nonce,error:"private-provider-error"},nonce),null);
 });
+
+
+test("Kakao token diagnostics expose only documented codes, never provider descriptions",async()=>{
+ for(const code of ["KOE009","KOE010","KOE101","KOE114","KOE126","KOE127","KOE303","KOE320"]){
+  const result=await finishSocialLogin(callback(),"kakao",env,async()=>"never",async()=>Response.json({error_code:code,error_description:"private-code-and-secret"},{status:401}),now);
+  const html=await result.text();assert(html.includes("SOCIAL_KAKAO_"+code));assert(!html.includes("private-code-and-secret"));
+  assert(readSocialResult({type:"paybridge-social-login",nonce,error:"SOCIAL_KAKAO_"+code},nonce));
+ }
+ const result=await finishSocialLogin(callback(),"kakao",env,async()=>"never",async()=>Response.json({error_code:"private-arbitrary-value",error_description:"private-secret"},{status:401}),now);
+ const html=await result.text();assert(html.includes("SOCIAL_TOKEN_EXCHANGE_FAILED"));assert(!html.includes("private-arbitrary-value"));assert(!html.includes("private-secret"));
+ assert.match(socialErrorMessage(Error("SOCIAL_KAKAO_KOE010")),/클라이언트 시크릿/);
+});
+test("provider credentials ignore accidental surrounding whitespace without altering token or code",async()=>{
+ let received:URLSearchParams|undefined,calls=0;await exchangeSocialCode("kakao","fixture-code","fixture-state",{...env,KAKAO_REST_API_KEY:" kakao-test-id\n",KAKAO_CLIENT_SECRET:" kakao-test-secret\n"},async(_url,init)=>{if(++calls===1){received=new URLSearchParams(String(init?.body));return Response.json({access_token:"fixture-token"})}return Response.json({id:123})});
+ assert.equal(received?.get("client_id"),"kakao-test-id");assert.equal(received?.get("client_secret"),"kakao-test-secret");assert.equal(received?.get("code"),"fixture-code");
+});

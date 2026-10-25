@@ -93,7 +93,7 @@ const products=[{id:"bedroom-lighting",name:"편안한 밤 조명 패키지",pri
   ({ctx,page,calls}=await context());
   await page.goto(admin);
   const managerPopup=page.waitForEvent("popup");
-  await page.getByRole("button",{name:"네이버로 계속하기",exact:true}).click();
+  await page.getByRole("button",{name:"카카오로 계속하기",exact:true}).click();
   const naver=await managerPopup;await naver.locator("#send").click();
   await page.getByText("관리자 권한이 없습니다. 내 계정에서 고유번호를 확인해 마스터에게 승인을 요청하세요.",{exact:true}).waitFor();
   assert.equal(await page.locator(".admin-package-grid").count(),0);
@@ -110,7 +110,7 @@ const products=[{id:"bedroom-lighting",name:"편안한 밤 조명 패키지",pri
   await page.screenshot({path:out+"/admin-social-mobile.png",fullPage:true});
   await ctx.close();
 
-  for(const [provider,merchantAllowed] of [["카카오",false],["네이버",true]]){
+  for(const [provider,merchantAllowed] of [["카카오",false],["카카오",true]]){
    ({ctx,page,calls}=await context({merchantAllowed}));
    await page.goto(seller);
    await page.getByRole("heading",{name:"판매자 센터 로그인",exact:true}).waitFor();
@@ -155,7 +155,7 @@ const products=[{id:"bedroom-lighting",name:"편안한 밤 조명 패키지",pri
   await page.locator(".customer-account summary").click();
   assert.equal(await page.getByRole("button",{name:"구글로 계속하기",exact:true}).isEnabled(),true);
   assert.equal(await page.getByRole("button",{name:/카카오로 계속하기/}).isEnabled(),false);
-  assert.equal(await page.getByRole("button",{name:/네이버로 계속하기/}).isEnabled(),false);
+  assert.equal(await page.locator(".social-naver").isVisible(),false);
   await page.getByRole("button",{name:"스토어로 돌아가기",exact:true}).click();
   await page.locator(".customer-account summary").click();
   assert.equal(await page.getByRole("button",{name:/카카오로 계속하기/}).isEnabled(),false,
@@ -174,7 +174,7 @@ const products=[{id:"bedroom-lighting",name:"편안한 밤 조명 패키지",pri
   await page.goto(customer);
   await page.locator(".customer-account summary").click();await page.getByRole("button",{name:"카카오로 계속하기",exact:true}).click();
   await page.getByRole("alert").filter({hasText:"팝업을 허용"}).waitFor();
-  assert.equal(await page.getByRole("button",{name:"네이버로 계속하기",exact:true}).isEnabled(),true);
+  assert.equal(await page.getByRole("button",{name:"카카오로 계속하기",exact:true}).isEnabled(),true);
   results.blockedPopupRecovery=true;await ctx.close();
   for(const code of ["SOCIAL_TOKEN_EXCHANGE_FAILED","SOCIAL_PROFILE_FAILED","SOCIAL_FIREBASE_TOKEN_FAILED"]){
    ({ctx,page}=await context({socialFailure:code}));await page.goto(customer);await page.locator(".customer-account summary").click();
@@ -184,6 +184,13 @@ const products=[{id:"bedroom-lighting",name:"편안한 밤 조명 패키지",pri
    assert.equal(await page.getByRole("button",{name:"카카오로 계속하기",exact:true}).isEnabled(),true);await ctx.close();
   }
   results.safeStageDiagnostics=true;
+  for(const target of [customer,seller,admin]){
+   ({ctx,page}=await context());await page.goto(target);if(target===customer)await page.locator(".customer-account summary").click();
+   await page.locator(".social-naver").waitFor({state:"attached"});
+   assert.equal(await page.locator(".social-naver").evaluate(e=>getComputedStyle(e).display),"none");
+   assert.equal(await page.getByRole("button",{name:/네이버로 계속하기/}).count(),0,"hidden provider must be absent from accessible controls");await ctx.close();
+  }
+  results.naverHiddenAcrossAllThreeSites=true;
   assert.deepEqual(errors,[]);results.pageErrors=errors;results.widths=[320,390,768,1440];
   fs.writeFileSync(out+"/verification.json",JSON.stringify(results,null,2));console.log(JSON.stringify(results));
  }finally{await browser.close()}
