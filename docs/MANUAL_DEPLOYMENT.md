@@ -16,7 +16,7 @@
 | 새 관리자 주소 | Cloudflare 배포 후 결정. 아직 확정하지 않음 |
 | 이번 변경의 운영 배포 | 미완료. 로컬 검증과 운영 배포 성공은 별개 |
 
-**코드 받기 → 공개 설정 입력 → Cloudflare 관리자 배포 → 연결 설정 → PR 병합 → Vercel 판매자·API 배포 → Firebase 고객 배포 → 화면 확인** 순서입니다.
+**코드 받기 → 공개 설정 입력 → Cloudflare 관리자 배포 → 연결 설정 → PR 병합 → Vercel 자동 배포 확인 → Firebase 고객 배포 → 화면 확인** 순서입니다.
 
 관리자 사이트부터 준비하는 이유는 기존 판매자 주소의 `/admin`이 새 관리자 주소로 이동하도록 바뀌기 때문입니다. 관리자 배포 전에는 PR을 먼저 병합하지 마세요.
 
@@ -140,9 +140,13 @@ Vercel 대시보드에서 **현재 `paybridge-mock.vercel.app`을 제공하는 �
 | Root Directory | `apps/merchant` |
 | Root Directory 밖 소스 포함 | 켬. `packages/staff-ui`와 `functions/src/domain.ts` 필요 |
 | Node.js | 22.x |
+| 연결 Git 저장소 | `wevolmina/paybridge-mock` |
+| Production 환경의 Branch Tracking | `main` |
 | Install Command | `npm install --prefix ../..` |
 | Build Command | `npm run build --workspace @bridge/merchant --prefix ../..` |
 | Output Directory | Next.js 기본값 유지 |
+
+Settings → Git에서 기존 `wevolmina/paybridge-mock` 연결을 확인하고, Settings → Environments → Production → Branch Tracking은 `main`인지 확인합니다. 연결되지 않았다면 기존 프로젝트에 이 저장소를 연결해야 합니다. 연결 권한은 프로젝트 소유 계정에서 처리합니다.
 
 설치·빌드 명령은 `apps/merchant/vercel.json`에도 있습니다. 대시보드가 다른 명령으로 덮어쓰고 있다면 위 값과 일치시키세요. 공유 코드가 있으므로 `apps/merchant`만 따로 업로드하면 안 됩니다.
 
@@ -198,28 +202,37 @@ git log -1 --oneline
 
 수정된 추적 파일이 보이면 변경부터 보관하세요. `reset --hard`나 강제 덮어쓰기로 해결하지 않습니다. `.env.local`은 Git에서 제외되어 정상적인 브랜치 전환 때 유지됩니다.
 
-**중요: `apps/merchant/vercel.json`의 `git.deploymentEnabled`가 `false`입니다.** main에 병합해도 Vercel 자동 Git 배포는 실행되지 않습니다. 아래 CLI 배포를 진행하세요.
+이번 수정에서 `apps/merchant/vercel.json`의 `git.deploymentEnabled`를 `true`로 바꿨습니다. 기존 Vercel 프로젝트에 저장소가 연결돼 있고 Production 추적 브랜치가 main이면, 이 PR을 병합할 때 새 운영 배포가 시작됩니다. 브랜치 푸시는 Preview(미리보기) 배포 대상입니다.
 
-## 7. Vercel 판매자·API 수동 배포
+관리자 주소와 Production 환경 변수를 반드시 병합 전에 저장하세요. 이 설정은 아직 작업 브랜치에 있으며, 현재 운영 main은 PR 병합 전까지 이전 설정입니다.
 
-최상위 폴더에서 실행합니다. CLI(Command Line Interface)는 터미널에서 명령어로 서비스를 조작하는 방식입니다.
+## 7. Vercel 자동 배포 확인
+
+1. PR을 main에 병합한 뒤 Vercel 기존 프로젝트 → Deployments를 엽니다.
+2. 새 배포의 브랜치가 **main**, 대상이 **Production**인지 확인합니다.
+3. Source 커밋이 방금 병합한 main 커밋과 같은지 확인합니다.
+4. 상태가 **Ready**가 될 때까지 빌드 로그를 확인합니다.
+5. 기존 `https://paybridge-mock.vercel.app/admin`이 새 관리자 주소로 이동하는지 확인합니다.
+
+GitHub PR·커밋에 표시되는 Vercel 상태도 참고할 수 있지만, 코드 설정을 켠 것만으로 실제 배포 성공을 보장하지는 않습니다. 이번 작업에서는 Vercel 대시보드의 저장소 연결·실제 자동 빌드 결과를 확인하지 않았습니다.
+
+브랜치 Preview를 사용하려면 해당 Preview 환경에도 별도 설정이 필요합니다. 미리보기 확인을 위해 운영 DB 비밀번호를 무조건 복사하지 마세요. 운영 환경 변수만 준비했다면 Production 배포를 기준으로 확인합니다.
+
+### 자동 배포가 시작되지 않을 때
+
+저장소 연결, Production 추적 브랜치 main, GitHub 앱의 저장소 접근 권한, 커밋 작성자의 배포 권한, 빌드를 건너뛰는 설정(Ignored Build Step)을 확인합니다. Ready가 아니라 Error라면 Build Logs를 먼저 확인하세요.
+
+최신 main을 명시해서 수동으로 다시 시작할 수도 있습니다. Vercel의 Deployments → Create Deployment에서 최신 main 브랜치 또는 병합 커밋을 선택합니다. 예전 배포의 Redeploy는 예전 소스를 다시 배포할 수 있으니 Source를 확인하세요.
+
+CLI(Command Line Interface, 터미널 명령 방식)를 사용하려면 최상위 폴더에서 기존 운영 프로젝트에 연결해 배포합니다. 자동 배포가 정상 완료됐다면 중복 실행할 필요는 없습니다.
 
 ```bash
 npx vercel login
 npx vercel link
-```
-
-연결 질문에서 기존 운영 프로젝트가 속한 계정·팀 → **기존 프로젝트에 연결**을 선택합니다. `paybridge-mock.vercel.app`을 제공하는 프로젝트인지 대시보드와 대조하세요. 새 프로젝트 생성은 선택하지 않습니다. 잘못 연결했다면 배포하지 말고 `vercel link`를 다시 실행해 바로잡습니다.
-
-연결 후 최상위에 `.vercel/project.json`이 생깁니다. 다음 명령으로 운영 배포합니다.
-
-```bash
 npx vercel --prod
 ```
 
-저장소 전체를 대상으로 업로드하되 원격 Root Directory는 `apps/merchant`여야 합니다. `--prod`는 실제 운영 도메인에 반영하는 옵션입니다. 예전 배포의 Redeploy만 누르면 예전 소스가 다시 배포될 수 있으므로 이번에는 최신 main을 받은 폴더에서 실행하세요.
-
-성공 기준: Vercel 상태가 **Ready**, 운영 도메인은 기존 `paybridge-mock.vercel.app`입니다. 이 주소의 `/admin`을 열면 새 Cloudflare 주소로 이동해야 합니다. 이동은 되는데 조회가 실패하면 5단계의 주소 변수와 최신 배포 적용 여부를 확인합니다.
+`vercel link`에서는 기존 운영 프로젝트가 속한 계정·팀과 **기존 프로젝트**를 선택합니다. 새 프로젝트를 만들지 않습니다. 저장소 전체를 업로드하되 원격 Root Directory는 `apps/merchant`여야 합니다. `--prod`는 실제 운영 도메인에 반영하는 옵션입니다.
 
 ## 8. Firebase 고객 화면 배포
 
@@ -281,7 +294,7 @@ curl -i 'https://paybridge-mock.vercel.app/api/admin/overview'
 | Cloudflare 계정 선택 오류 | 실제 대상 계정 확인 후 Wrangler 안내에 따라 `account_id` 지정 |
 | 관리자 조회 실패 | `VITE_STAFF_API_ORIGIN` → Vercel의 두 관리자 주소 → 최신 Vercel 배포 순서로 확인 |
 | CORS 오류 | Vercel `ADMIN_SITE_ORIGIN`과 주소창 Origin 비교. Preview URL과 운영 URL 혼동 주의 |
-| `/admin`이 예전 화면 | Vercel 최신 배포 확인. main 병합만으로는 자동 배포되지 않음 |
+| `/admin`이 예전 화면 | Vercel 새 Production 배포의 Source·Ready 확인. 저장소 연결·main 추적·빌드 오류 확인 |
 | `auth/invalid-api-key`·설정 누락 | Firebase 웹 설정 확인 후 해당 앱 다시 빌드·배포 |
 | `auth/unauthorized-domain` | Firebase 승인 도메인·API 키 웹사이트 제한 확인 |
 | 로그인 후 403 | 기존 계정의 활성 상태와 DB 직원 역할 확인. CORS를 `*`로 바꿔 해결하지 않기 |
@@ -302,9 +315,9 @@ node --import tsx --test tests/*.test.ts
 | 변경한 부분 | 다시 할 작업 |
 | --- | --- |
 | 고객 `apps/customer` | 고객 빌드 + Firebase Hosting 배포 |
-| 판매자·API `apps/merchant` | 최신 main에서 `npx vercel --prod` |
+| 판매자·API `apps/merchant` | main 병합 후 Vercel Production 자동 배포·Ready 확인 |
 | 관리자 `apps/admin` | `npm run deploy:admin` |
-| 공통 `packages/staff-ui` | 관리자와 판매자 **둘 다** 재배포 |
+| 공통 `packages/staff-ui` | main 병합 후 Vercel 자동 빌드 확인 + Cloudflare 관리자 수동 재배포 |
 | `VITE_`·`NEXT_PUBLIC_` 변수 | 해당 앱 다시 빌드·배포 |
 | 관리자 운영 도메인 | Vercel 두 주소·Firebase 승인 도메인·설정 파일 기록 함께 변경 |
 
@@ -324,11 +337,7 @@ npm run build --workspace @bridge/customer
 npx firebase-tools deploy --only hosting --project paybridge-mock
 ```
 
-판매자·API만 다시 배포:
-
-```bash
-npx vercel --prod
-```
+판매자·API는 변경을 main에 병합한 후 Vercel의 새 Production 배포가 Ready인지 확인합니다. 자동 배포가 정상 동작하면 CLI 명령은 필요하지 않습니다. 수동 재배포가 필요하면 7단계를 따릅니다.
 
 관리자만 다시 배포:
 
@@ -340,7 +349,7 @@ npm run deploy:admin
 
 ## 12. 검증 범위와 배포 기록
 
-개발 환경에서 단위 테스트 27개, 세 앱 빌드, 실제 업로드 없는 Cloudflare 사전 검사(dry-run), 역할별 모션·로그인 분리·CORS 브라우저 검증을 통과했습니다. 시험용 API 응답을 사용한 UI 검증을 포함합니다. 실행 환경은 Node.js 24였으며 권장 Node.js 22 재실행, 실제 운영 계정의 관리자 권한·DB 변경·이번 세 서비스의 운영 배포는 별도 확인 대상입니다.
+개발 환경에서 단위 테스트 27개, 세 앱 빌드, 실제 업로드 없는 Cloudflare 사전 검사(dry-run), 역할별 모션·로그인 분리·CORS 브라우저 검증을 통과했습니다. 시험용 API 응답을 사용한 UI 검증을 포함합니다. 실행 환경은 Node.js 24였으며 권장 Node.js 22 재실행, 실제 운영 계정의 관리자 권한·DB 변경·이번 세 서비스의 운영 배포와 Vercel 자동 배포 연결·실행은 별도 확인 대상입니다.
 
 아래 칸은 직접 배포한 결과로 채웁니다. 빈칸을 성공으로 해석하지 않습니다.
 
@@ -360,5 +369,7 @@ npm run deploy:admin
 - [Cloudflare 정적 파일 배포](https://developers.cloudflare.com/workers/static-assets/get-started/)
 - [Cloudflare 단일 페이지 앱 라우팅](https://developers.cloudflare.com/workers/static-assets/routing/single-page-application/)
 - [Vercel 모노레포](https://vercel.com/docs/monorepos)
+- [Vercel Git 자동 배포](https://vercel.com/docs/git)
+- [Vercel Git 배포 설정](https://vercel.com/docs/project-configuration/git-configuration)
 - [Vercel CLI 운영 배포](https://vercel.com/docs/cli/deploy)
 - [Firebase Hosting 시험·운영 배포](https://firebase.google.com/docs/hosting/test-preview-deploy)

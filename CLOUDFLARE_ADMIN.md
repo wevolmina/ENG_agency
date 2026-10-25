@@ -2,7 +2,7 @@
 
 기준: 2026-10-25 한국 시간. 코드와 로컬 검증 완료. GitHub 작업 브랜치와 [PR #1](https://github.com/wevolmina/paybridge-mock/pull/1)에 반영했으며, main 병합·운영 배포·실계정 접속 검증은 아직 완료하지 않았다.
 
-직접 배포할 때는 [Windows 직접 배포 안내서](docs/MANUAL_DEPLOYMENT.md)를 순서대로 따른다. 명령어·설정 입력 위치·PR 병합·Vercel 수동 배포·완료 확인·오류 해결을 포함한다.
+직접 배포할 때는 [Windows 직접 배포 안내서](docs/MANUAL_DEPLOYMENT.md)를 순서대로 따른다. 명령어·설정 입력 위치·PR 병합·Vercel 자동 배포 확인·완료 확인·오류 해결을 포함한다.
 
 |사용자|호스팅|소스|역할|
 |---|---|---|---|
@@ -112,8 +112,8 @@ npm run dev:admin
 
 - GitHub 권한 연결 후 소스를 `feat/admin-cloudflare-ui-release`에 업로드하고 PR #1을 생성했다. 앞선 403 오류는 해소됐다.
 - 이 작업 환경에서는 Cloudflare 실제 Worker를 생성하지 않았다. 사용자가 직접 배포하는 방식으로 전환했다. 사용자 PC에서는 Wrangler 인증을 별도로 확인한다.
-- `apps/merchant/vercel.json`의 `git.deploymentEnabled`는 `false`다. main 병합 후에도 안내서의 CLI 명령으로 Vercel을 수동 배포해야 한다.
+- `apps/merchant/vercel.json`의 `git.deploymentEnabled`를 `true`로 변경했다. 기존 Git 연결과 Production main 추적을 확인한 뒤 PR을 병합하면 Vercel 자동 배포 대상이 된다. 실제 자동 빌드·운영 성공은 별도 확인한다.
 
-Cloudflare 관리자 배포 → 실제 URL 확정 → Vercel 환경 변수·Firebase 도메인 설정 → PR 병합 → Vercel 수동 배포 → 고객 Hosting 배포 → 운영 로그인·권한 확인 순서로 진행한다.
+Cloudflare 관리자 배포 → 실제 URL 확정 → Vercel 환경 변수·Firebase 도메인 설정 → PR 병합 → Vercel 자동 배포 확인 → 고객 Hosting 배포 → 운영 로그인·권한 확인 순서로 진행한다.
 
 공식 참고: [Cloudflare Static Assets](https://developers.cloudflare.com/workers/static-assets/) · [SPA 라우팅](https://developers.cloudflare.com/workers/static-assets/routing/single-page-application/) · [Wrangler 설정](https://developers.cloudflare.com/workers/wrangler/configuration/).

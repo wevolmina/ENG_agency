@@ -24,9 +24,9 @@ npm run dev:merchant
 
 ## 배포
 
-[Windows 직접 배포 안내서](docs/MANUAL_DEPLOYMENT.md)를 순서대로 따르세요. Cloudflare 관리자 배포 → 실제 주소 연결 → PR 병합 → Vercel 수동 배포 → Firebase 고객 Hosting 배포 순서입니다.
+[Windows 직접 배포 안내서](docs/MANUAL_DEPLOYMENT.md)를 순서대로 따르세요. Cloudflare 관리자 배포 → 실제 주소 연결 → PR 병합 → Vercel 자동 배포 확인 → Firebase 고객 Hosting 배포 순서입니다.
 
-Vercel 자동 Git 배포는 현재 `apps/merchant/vercel.json`에서 꺼 두었습니다. main 병합 후 최신 소스에서 `npx vercel --prod`를 실행해야 합니다. 공통 `packages/staff-ui`를 수정하면 관리자와 판매자를 둘 다 다시 배포합니다.
+Vercel 자동 Git 배포 설정을 `apps/merchant/vercel.json`의 `git.deploymentEnabled: true`로 변경했습니다. 기존 저장소 연결과 Production main 추적이 설정돼 있으면 main 병합으로 운영 배포, 다른 브랜치 푸시로 미리보기 배포가 시작됩니다. 실제 빌드·Ready 상태를 확인하세요. 공통 `packages/staff-ui` 변경은 Vercel 자동 빌드 확인과 Cloudflare 관리자 재배포가 모두 필요합니다.
 
 고객 화면만 배포할 때는 아래처럼 Hosting만 지정합니다. 기존 `deploy:firebase` 스크립트는 Firestore·Auth도 대상으로 하므로 이번 UI 변경에서는 사용하지 않습니다.
 
