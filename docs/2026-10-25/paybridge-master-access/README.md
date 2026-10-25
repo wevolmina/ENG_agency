@@ -13,6 +13,10 @@
 | MASTER_SETUP_EMAIL | 마스터로 지정한 본인 구글 이메일 |
 | MASTER_SETUP_MERCHANT_ID | 현재 상점 번호 studio-mina |
 | MASTER_SETUP_PASSWORD | 본인이 정한 최초 설정 비밀번호. Secret으로 직접 입력 |
+| FIREBASE_CLIENT_EMAIL | Firebase Admin SDK 서비스 계정 키의 client_email |
+| FIREBASE_PRIVATE_KEY | 같은 키의 private_key. Secret으로 직접 입력 |
+
+Firebase 두 항목은 운영 환경 변수 목록에서 미등록을 확인했다. 본인이 보관한 유효한 Firebase Admin SDK 서비스 계정 키에서 값을 직접 입력한다. 키 파일·내용을 채팅이나 저장소에 게시하지 않는다. 해당 서비스 계정은 Firebase Authentication 사용자 조회 권한이 필요하다. 키가 없다면 Firebase 프로젝트 설정 → 서비스 계정에서 인증 준비를 먼저 진행한다.
 
 설정 비밀번호 값은 소스·예제 파일·문서·검증 기록에 넣지 않는다. Vercel의 서버 전용 비밀 설정에 저장한다. 환경 변수 저장 후 Production을 재배포해야 적용된다.
 
@@ -65,3 +69,13 @@
 ## 검증과 배포
 
 검증 결과와 운영 적용 상태는 verification.json 및 아래 배포 기록에 추가한다. 실제 계정에 대한 권한 부여 완료와 기능 코드 배포는 구분한다.
+
+## 운영 배포 기록
+
+- [PR #5](https://github.com/wevolmina/paybridge-mock/pull/5) 병합. 운영 기능 소스: de1d66e4da3967966c0ce3290acb3bc303347656.
+- [PR 검사](https://github.com/wevolmina/paybridge-mock/actions/runs/40172929907)와 [main 검사](https://github.com/wevolmina/paybridge-mock/actions/runs/40172999984) 성공. 단위 검사 63개와 고객·판매자·관리자 빌드를 확인했다.
+- [Vercel 운영 배포 성공](https://vercel.com/wevolmina94-9986/paybridge-mock/H5YPK5PGNYy5uB3Ypks9hmHDEsvd), [Cloudflare 관리자 배포 성공](https://github.com/wevolmina/paybridge-mock/actions/runs/40172999998), [Firebase 고객 배포 성공](https://github.com/wevolmina/paybridge-mock/actions/runs/40172999970).
+- 시험용 Auth·업무 응답과 DB 대체물을 사용해 최초 등록·재사용 거절·실패 잠금·권한 승인/해제·트랜잭션 롤백·상점 분리·마스터 보호를 확인했다. 320/390/768/1440px 가로 넘침 및 브라우저 실행 오류가 없었다.
+- 실제 MySQL 초기화, 본인 구글 계정의 최초 마스터 등록, 실제 계정 권한 변경은 수행하지 않았다.
+- Vercel Production의 최초 등록 변수 3개와 Firebase 서버 인증 변수 2개는 저장 전 입력 양식을 준비했다. 본인이 비밀번호와 서비스 계정 인증값을 직접 입력하고 Save를 완료해야 한다.
+- 브라우저의 새 인증정보 입력·저장 규칙에 따라 비밀번호·비밀키 입력과 제출은 사용자에게 인계한다. 비밀번호를 소스·문서·GitHub에 저장하지 않았다.

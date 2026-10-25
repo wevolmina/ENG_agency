@@ -34,5 +34,44 @@
   "productionSetupPasswordSaved": false,
   "realGoogleEnrollmentTested": false,
   "realMySQLInitializationTested": false,
-  "deploymentStatus": "pending"
+  "deploymentStatus": "success",
+  "sourceCommit": "de1d66e4da3967966c0ce3290acb3bc303347656",
+  "pullRequest": 5,
+  "deployments": {
+    "vercel": "https://vercel.com/wevolmina94-9986/paybridge-mock/H5YPK5PGNYy5uB3Ypks9hmHDEsvd",
+    "checksRun": 40172999984,
+    "cloudflareRun": 40172999998,
+    "firebaseRun": 40172999970,
+    "allSucceeded": true
+  },
+  "settingsHandoff": {
+    "saved": false,
+    "productionOnly": true,
+    "type": "Secret",
+    "masterIdentityAndShopPrepared": true,
+    "secretValuesEnteredByAgent": false,
+    "requiredUserEntries": [
+      "MASTER_SETUP_PASSWORD",
+      "FIREBASE_CLIENT_EMAIL",
+      "FIREBASE_PRIVATE_KEY"
+    ]
+  },
+  "publicAuthorizationChecks": [
+    {
+      "case": "missing-token",
+      "status": 401
+    },
+    {
+      "case": "external-origin",
+      "status": 403
+    },
+    {
+      "case": "missing-origin",
+      "status": 403
+    },
+    {
+      "case": "preflight",
+      "status": 204
+    }
+  ]
 }
