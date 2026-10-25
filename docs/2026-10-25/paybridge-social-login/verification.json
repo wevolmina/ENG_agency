@@ -54,5 +54,23 @@
     "adminWriteAndReadback": true,
     "separateLogout": true,
     "pageErrors": []
+  },
+  "googleActivation": {
+    "date": "2026-10-25 Asia/Seoul",
+    "userApproved": true,
+    "firebaseProviderEnabled": true,
+    "emailPasswordAndAnonymousRetained": true,
+    "productionConfigEnabled": true,
+    "vercelDeployment": "https://vercel.com/wevolmina94-9986/paybridge-mock/37jm4mM6ym6fVxzS3abBV3c9rWgJ",
+    "source": "4a77401b997cb7f0b4bfceec646b3a21790a8df7",
+    "readiness": {
+      "google": true,
+      "kakao": false,
+      "naver": false
+    },
+    "customerButtonEnabled": true,
+    "adminButtonEnabled": true,
+    "realAccountSignInTested": false,
+    "dbWrites": false
   }
 }

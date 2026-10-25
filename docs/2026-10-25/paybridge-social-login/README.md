@@ -21,7 +21,7 @@
 4. Vercel의 기존 paybridge-mock 프로젝트 → Settings → Environment Variables → **Production**에 `SOCIAL_GOOGLE_ENABLED=true`를 저장하고 최신 main을 재배포한다.
 5. 콘솔 실제 설정과 `firebase.json` 기록을 맞춘다. 이번 CI는 Hosting만 게시하며 Auth 전체를 덮어쓰지 않는다.
 
-Google 활성화는 새 로그인 경로를 여는 보안 설정이므로 최종 저장은 사용자 확인 후 진행한다. 이 문서 작성 시점에는 콘솔에서 Google이 꺼져 있음을 확인했으며 저장하지 않았다.
+사용자 승인 후 Google 사용 설정을 저장했다. 공개 프로젝트 이름은 ‘페이브릿지’이며 승인된 지원 이메일을 선택했다. 기존 이메일/비밀번호·익명은 유지했다. Vercel Production의 `SOCIAL_GOOGLE_ENABLED=true` 저장과 운영 재배포, 고객·관리자 버튼 활성화까지 확인했다.
 
 ## 2. 카카오 앱 설정
 
@@ -101,26 +101,34 @@ Google과 카카오·네이버는 같은 사람이어도 Firebase 사용자 번�
 - 320/390/768/1440px 가로 넘침 없음, 브라우저 실행 오류 없음.
 - 기존 고객 선택·결과 재확인·영수증 복원, 두 직원 사이트의 별도 로그인·로그아웃 검사 통과.
 
-운영 계정 로그인·주문 생성 없이 시험용 인증·공급자·업무 응답으로 확인했다. 실제 공급자 등록·Google 계정 연결 성공·모바일 실제 기기의 팝업 복귀는 아직 미확인이다.
+운영 계정 로그인·주문 생성 없이 시험용 인증·공급자·업무 응답으로 확인했다. 카카오·네이버 실제 앱 등록, Google 실제 계정 연결 성공, 모바일 실제 기기의 팝업 복귀는 아직 미확인이다.
 
 남은 순서:
 
-1. Google 활성화 최종 사용자 확인·저장과 Vercel 플래그 반영.
-2. 카카오·네이버 앱의 키·Client Secret·콜백 설정.
-3. 실제 계정으로 각 로그인 취소·성공·재접속 확인.
-4. 관리자 실계정의 DB 역할 확인. 공급자 간 주문 이전은 별도 기능으로 남긴다.
+1. 카카오·네이버 앱의 키·Client Secret·콜백 설정.
+2. 실제 계정으로 각 로그인 취소·성공·재접속 확인.
+3. 관리자 실계정의 DB 역할 확인. 공급자 간 주문 이전은 별도 기능으로 남긴다.
 
 ## 공식 근거
 
 [Firebase Google 로그인](https://firebase.google.com/docs/auth/web/google-signin) · [계정 연결](https://firebase.google.com/docs/auth/web/account-linking) · [사용자 지정 토큰](https://firebase.google.com/docs/auth/admin/create-custom-tokens) · [카카오 REST 로그인](https://developers.kakao.com/docs/ko/kakaologin/rest-api) · [네이버 로그인 API](https://developers.naver.com/docs/login/api/api.md) · [네이버 프로필 조회](https://developers.naver.com/docs/login/profile/profile.md)
 
-## 게시 결과 · 공급자 연결 활성화 대기
+## 게시 결과 · Google 활성화 완료
 
 - [PR #3](https://github.com/wevolmina/paybridge-mock/pull/3) 병합. 기능 게시 소스는 43d3d334d3b74d0bd5f777acef0be8c27de31b59.
 - [PR 검사 성공](https://github.com/wevolmina/paybridge-mock/actions/runs/40165786444). [main 검사](https://github.com/wevolmina/paybridge-mock/actions/runs/40165902555).
 - [고객 자동 배포 성공](https://github.com/wevolmina/paybridge-mock/actions/runs/40165902564), Hosting 버전 61243ef01b996529.
 - [관리자 자동 배포 성공](https://github.com/wevolmina/paybridge-mock/actions/runs/40165902568), Worker 버전 6f643d1d-cd5e-48ef-bd20-d0493b8b3112.
 - [Vercel 배포 성공](https://vercel.com/wevolmina94-9986/paybridge-mock/GicGA95wEnqJC8c5NBCujcyGUw94).
-- 운영 HTML의 고객·관리자 연결 파일이 새 빌드와 일치한다. 실제 두 사이트에서 세 버튼의 ‘연결 준비 중’ 표시를 확인했다.
-- 준비 상태 조회는 허용된 고객 주소에서 200과 세 공급자 모두 false. 허용하지 않은 주소는 403, 인증 정보 없는 관리자 조회는 403.
-- **화면·서버 게시를 마친 상태이며 실제 공급자 로그인 완료를 뜻하지 않는다.** Google은 최종 저장 승인 대기, 카카오·네이버는 앱 키·Secret·콜백 등록이 남았다. 비밀값을 읽거나 생성해 게시하지 않았다.
+- 운영 HTML의 고객·관리자 연결 파일이 새 빌드와 일치한다. Google 활성화 후 실제 두 사이트에서 구글 버튼이 활성화되고 카카오·네이버는 ‘연결 준비 중’임을 확인했다.
+- 준비 상태 조회는 고객·관리자 두 주소에서 모두 200, Google true·Kakao false·Naver false. 기존 검사에서 허용하지 않은 주소 403, 인증 정보 없는 관리자 조회 403을 확인했다.
+- **Google 설정 저장·운영 버튼 활성화를 마쳤으며 실제 개인 계정의 로그인 완료 시험과 구분한다.** 카카오·네이버는 앱 키·Secret·콜백 등록이 남았다. 비밀값을 읽거나 생성해 게시하지 않았다.
+
+## Google 활성화 확인 · 2026-10-25
+
+- Firebase 콘솔: Google 사용 설정됨. 기존 이메일/비밀번호·익명 사용 설정 유지.
+- 승인된 공개 이름·지원 이메일을 저장하고 `firebase.json` 기록도 맞췄다. Auth 전체 배포는 수행하지 않았다.
+- Vercel Production에 `SOCIAL_GOOGLE_ENABLED=true`를 Config로 저장했다.
+- [운영 재배포 Ready](https://vercel.com/wevolmina94-9986/paybridge-mock/37jm4mM6ym6fVxzS3abBV3c9rWgJ), 소스 `4a77401b997cb7f0b4bfceec646b3a21790a8df7`.
+- [main 검사 성공](https://github.com/wevolmina/paybridge-mock/actions/runs/40167060460), [고객 Hosting 자동 배포 성공](https://github.com/wevolmina/paybridge-mock/actions/runs/40167060473).
+- 고객·관리자 실제 화면에서 구글 버튼 활성화를 확인했다. 개인 계정 로그인, 관리자 권한 추가, 주문·DB 변경은 수행하지 않았다.
