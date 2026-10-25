@@ -60,6 +60,7 @@ const products=[{id:"bedroom-lighting",name:"편안한 밤 조명 패키지",pri
   }
   let {ctx,page,calls}=await context();
   await page.goto(customer);
+  await page.locator(".customer-account summary").click();
   await page.getByRole("button",{name:"카카오로 계속하기",exact:true}).waitFor();
   await page.getByLabel("침실 패키지 선택",{exact:true}).check();
   await page.locator(".mock-consent input").check();
@@ -75,6 +76,8 @@ const products=[{id:"bedroom-lighting",name:"편안한 밤 조명 패키지",pri
   assert.equal(await page.locator(".mock-consent input").isChecked(),false,"account switch resets consent");
   assert.equal(await page.getByRole("button",{name:"로그아웃",exact:true}).isEnabled(),true,"login busy resets after success");
   await page.getByRole("button",{name:"로그아웃",exact:true}).click();
+  await page.locator(".customer-account summary").waitFor();
+  await page.locator(".customer-account summary").click();
   await page.getByRole("heading",{name:"간편하게 로그인하고 둘러보세요",exact:true}).waitFor();
   results.customerLoginLogoutAndConsent=true;results.wrongNonceIgnored=true;results.checkoutLockedDuringLogin=true;
   for(const width of [320,390,768,1440]){
@@ -82,7 +85,7 @@ const products=[{id:"bedroom-lighting",name:"편안한 밤 조명 패키지",pri
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,"overflow "+width);
   }
   fs.mkdirSync(out,{recursive:true});
-  if(process.env.QA_FONT_CSS)await page.addStyleTag({content:fs.readFileSync(process.env.QA_FONT_CSS,"utf8")+'\nbody{font-family:"Noto Sans KR",sans-serif!important}'});
+  if(process.env.QA_FONT_CSS)await page.addStyleTag({content:fs.readFileSync(process.env.QA_FONT_CSS,"utf8")+'\n.auth-page,.shell,body{font-family:"Noto Sans KR",sans-serif!important}'});
   await page.evaluate(()=>document.fonts.ready);
   await page.screenshot({path:out+"/customer-social.png",fullPage:false});
   await ctx.close();
@@ -102,7 +105,7 @@ const products=[{id:"bedroom-lighting",name:"편안한 밤 조명 패키지",pri
   for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:900});
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,"admin overflow "+width)}
   await page.setViewportSize({width:390,height:844});
-  if(process.env.QA_FONT_CSS)await page.addStyleTag({content:fs.readFileSync(process.env.QA_FONT_CSS,"utf8")+'\nbody{font-family:"Noto Sans KR",sans-serif!important}'});
+  if(process.env.QA_FONT_CSS)await page.addStyleTag({content:fs.readFileSync(process.env.QA_FONT_CSS,"utf8")+'\n.auth-page,.shell,body{font-family:"Noto Sans KR",sans-serif!important}'});
   await page.evaluate(()=>document.fonts.ready);
   await page.screenshot({path:out+"/admin-social-mobile.png",fullPage:true});
   await ctx.close();
@@ -134,7 +137,7 @@ const products=[{id:"bedroom-lighting",name:"편안한 밤 조명 패키지",pri
    for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:900});
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,"seller overflow "+width)}
    await page.setViewportSize({width:1440,height:960});
-   if(process.env.QA_FONT_CSS)await page.addStyleTag({content:fs.readFileSync(process.env.QA_FONT_CSS,"utf8")+'\nbody{font-family:"Noto Sans KR",sans-serif!important}'});
+   if(process.env.QA_FONT_CSS)await page.addStyleTag({content:fs.readFileSync(process.env.QA_FONT_CSS,"utf8")+'\n.auth-page,.shell,body{font-family:"Noto Sans KR",sans-serif!important}'});
    await page.evaluate(()=>document.fonts.ready);
    await page.screenshot({path:out+"/seller-social-"+merchantAllowed+".png",fullPage:true});
    await ctx.close();
@@ -144,27 +147,32 @@ const products=[{id:"bedroom-lighting",name:"편안한 밤 조명 패키지",pri
 
   ({ctx,page}=await context({guestOrder:true}));
   await page.goto(customer);
+  await page.locator(".customer-account summary").click();
   await page.getByLabel("침실 패키지 선택",{exact:true}).check();
   await page.locator(".mock-consent input").check();
   await page.getByRole("button",{name:"바로 구매 · 모의 결제",exact:true}).click();
   await page.locator(".completion").waitFor();
+  await page.locator(".customer-account summary").click();
   assert.equal(await page.getByRole("button",{name:"구글로 계속하기",exact:true}).isEnabled(),true);
   assert.equal(await page.getByRole("button",{name:/카카오로 계속하기/}).isEnabled(),false);
   assert.equal(await page.getByRole("button",{name:/네이버로 계속하기/}).isEnabled(),false);
   await page.getByRole("button",{name:"스토어로 돌아가기",exact:true}).click();
+  await page.locator(".customer-account summary").click();
   assert.equal(await page.getByRole("button",{name:/카카오로 계속하기/}).isEnabled(),false,
    "previous anonymous history remains protected after returning to store");
   results.anonymousOrderHistoryProtected=true;await ctx.close();
 
   ({ctx,page}=await context({ready:false}));
   await page.goto(customer);
+  await page.locator(".customer-account summary").click();
   await page.getByRole("button",{name:/카카오로 계속하기/}).waitFor();
   assert.equal(await page.getByRole("button",{name:/카카오로 계속하기/}).isEnabled(),false);
   assert.equal(await page.getByRole("button",{name:/구글로 계속하기/}).isEnabled(),false);
   results.unconfiguredProvidersDisabled=true;await ctx.close();
 
   ({ctx,page}=await context({blocked:true}));
-  await page.goto(customer);await page.getByRole("button",{name:"카카오로 계속하기",exact:true}).click();
+  await page.goto(customer);
+  await page.locator(".customer-account summary").click();await page.getByRole("button",{name:"카카오로 계속하기",exact:true}).click();
   await page.getByRole("alert").filter({hasText:"팝업을 허용"}).waitFor();
   assert.equal(await page.getByRole("button",{name:"네이버로 계속하기",exact:true}).isEnabled(),true);
   results.blockedPopupRecovery=true;await ctx.close();

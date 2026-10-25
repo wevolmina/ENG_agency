@@ -12,6 +12,7 @@ import SocialLogin from "./SocialLogin";
 import StaffAccess from "./StaffAccess";
 import {PrivateInput,PrivateValue} from "./PrivateFields";
 import "./social-login.css";
+import "./workspace.css";
 import { unseenOrderIds } from "./new-orders";
 type Package = {
   id: string;
@@ -88,6 +89,15 @@ export default function StaffDashboard({
     [busy, setBusy] = useState(false),
     [search, setSearch] = useState(""),
     [revision, setRevision] = useState(0);
+  const [view, setView] = useState(admin ? "packages" : "overview");
+  const viewHeading = useRef<HTMLHeadingElement>(null);
+  const views = admin ? ["packages", "accounts", "transactions", "activity"] : ["overview", "transactions", "accounts"];
+  useEffect(() => {
+    const sync = () => { const hash = window.location.hash.slice(1); if (views.includes(hash)) setView(hash); };
+    sync(); window.addEventListener("hashchange", sync);
+    return () => window.removeEventListener("hashchange", sync);
+  }, [admin]);
+  function navigate(next: string) { if (accessBusy) return; setView(next); window.history.replaceState(null, "", "#" + next); requestAnimationFrame(() => { viewHeading.current?.focus({preventScroll:true}); window.scrollTo({top:0}); }); }
   const [socialBusy, setSocialBusy] = useState(false);
   const [accessBusy, setAccessBusy] = useState(false);
   const [packageFilter, setPackageFilter] = useState("all"),
@@ -310,73 +320,22 @@ export default function StaffDashboard({
       .toLowerCase()
       .includes(search.toLowerCase()),
   );
-  return (
-    <div className="shell">
-      <aside>
-        <a className="brand" href="/">
-          paybridge<span>{title}</span>
-        </a>
-        <div className="store">
-          <div className="avatar">S</div>
-          <div>
-            <b>SMART HOME</b>
-            <small>한 브랜드 · 모의 스토어</small>
-          </div>
-        </div>
-        <nav>
-          <a href="#overview" className="active">
-            {admin ? "공간·패키지 관리" : "모의 매출"}
-          </a>
-          <a href="#transactions">주문·결제 내역</a>
-          {(admin || adminSiteUrl) && (
-            <a href={admin ? merchantSiteUrl : adminSiteUrl}>
-              {admin ? "판매자 센터" : "관리자 사이트"}
-            </a>
-          )}
-          <a href="https://paybridge-mock.web.app/">구매자 스토어 ↗</a>
-        </nav>
-        <div className="sidebar-bottom">
-          모의 주문 환경<p>실제 결제·배송·기기 연결 없음</p>
-        </div>
-      </aside>
-      <div className="workspace">
-        <header>
-          <span>
-            SMART HOME / <b>{title}</b>
-          </span>
-          <span className="badge">DB 연동 · 모의 거래</span>
-        </header>
-        <main id="overview">
-          <div className="heading">
-            <div>
-              <span className="eyebrow">
-                {admin ? "SPACE & PACKAGE MANAGEMENT" : "YOUR SMART HOME STORE"}
-              </span>
-              <h1>{admin ? "공간과 패키지 관리" : "모의 매출 대시보드"}</h1>
-              <p>
-                {admin
-                  ? "공개 상태와 주문, 역할을 한곳에서 확인하세요."
-                  : "구매자가 완료한 공간 패키지 주문과 구성을 확인하세요."}
-              </p>
-            </div>
-            {user && (
-              <div className="actions">
-                <button disabled={busy || accessBusy} onClick={() => void logout()}>로그아웃</button>
-              </div>
-            )}
-          </div>
-          {!configured && (
-            <p className="notice">로그인 연결 설정을 확인 중입니다.</p>
-          )}
-          {!user ? (
-            <section className="login card">
-              <p className="eyebrow">AUTHORIZED STAFF ONLY</p>
+  const shownPayments = view === "overview" ? (data?.payments || []).slice(0,5) : payments;
+  if (!user) return <div className={"auth-page " + (admin ? "theme-admin" : "theme-merchant")}>
+    <a className="auth-brand" href="/">paybridge<span>{admin ? "관리자" : "판매자 센터"}</span></a>
+    <main className="auth-layout"><section className="auth-story">
+      <p className="eyebrow">{admin ? "A CLEARER WAY TO MANAGE" : "YOUR STORE, AT A GLANCE"}</p>
+      <h1>{admin ? <>운영의 모든 기준을,<br/>한곳에서.</> : <>좋은 공간의 시작,<br/>매일의 주문에서.</>}</h1>
+      <p>{admin ? "공간과 패키지, 계정과 권한을 구분해 관리합니다." : "공간 패키지의 주문과 매출을 한눈에 확인합니다."}</p>
+      <WorkspaceArt admin={admin}/><div className="auth-story-caption"><span>01 / {admin ? "CONTROL ROOM" : "SMART LIVING STORE"}</span><span>PAYBRIDGE</span></div>
+    </section><div className="auth-form-wrap"><section className="login card">
+              <p className="eyebrow">{admin ? "ADMINISTRATOR" : "MERCHANT WORKSPACE"}</p>
               <h2>{title} 로그인</h2>
-              <p>간편로그인 또는 기존 이메일 계정을 사용하세요. 서버에서 {admin ? "관리자" : "판매자"} 역할을 확인합니다.</p>
+              <p className="login-lead">{admin ? "승인된 계정으로 운영 공간에 접속하세요." : "오늘의 주문과 매출을 확인하세요."}</p>
               <SocialLogin auth={configured ? clientAuth() : null} apiOrigin={apiOrigin || "https://paybridge-mock.vercel.app"}
                 disabled={busy} onBusyChange={setSocialBusy}/>
                 <p className="social-divider">또는 이메일로 로그인</p>
-                <p className="social-help">간편로그인만으로 {admin ? "관리자" : "판매자"} 권한이 생기지 않습니다. 등록된 {admin ? "관리자" : "판매자"} 계정만 자료를 볼 수 있습니다.</p>
+
               <form onSubmit={login}>
                 <label>
                   이메일
@@ -401,20 +360,75 @@ export default function StaffDashboard({
                 </button>
               </form>
             </section>
-          ) : (
+      {!configured && <p className="notice">로그인 연결 설정을 확인 중입니다.</p>}
+      {error && <p className="notice" role="alert">{error}</p>}
+      <p className="auth-note">승인된 계정만 이용할 수 있습니다. 실제 청구 없는 모의 서비스입니다.</p>
+      <a className="auth-back" href="https://paybridge-mock.web.app/">고객 스토어 둘러보기 <span aria-hidden="true">↗</span></a>
+    </div></main></div>;
+  return (
+    <div className={"shell " + (admin ? "theme-admin" : "theme-merchant")}>
+      <aside>
+        <a className="brand" href="/">
+          paybridge<span>{title}</span>
+        </a>
+        <div className="store">
+          <div className="avatar">S</div>
+          <div>
+            <b>SMART HOME</b>
+            <small>한 브랜드 · 모의 스토어</small>
+          </div>
+        </div>
+        <nav aria-label={admin ? "관리자 메뉴" : "판매자 메뉴"}>
+          {(admin ? [["packages","공간·패키지"],["accounts","계정·권한"],["transactions","주문 현황"],["activity","변경 이력"]] : [["overview","매출 개요"],["transactions","주문 내역"],["accounts","내 계정"]]).map(([key,label],i)=><a key={key} href={"#"+key} className={view===key?"active":undefined} aria-current={view===key?"page":undefined} onClick={e=>{e.preventDefault();navigate(key)}} aria-disabled={accessBusy}><span className="nav-number" aria-hidden="true">0{i+1}</span>{label}</a>)}
+          <div className="nav-external-label">다른 공간</div>
+          {(admin || adminSiteUrl) && <a href={admin ? merchantSiteUrl : adminSiteUrl}>{admin ? "판매자 센터" : "관리자 사이트"}<span aria-hidden="true">↗</span></a>}
+          <a href="https://paybridge-mock.web.app/">고객 스토어<span aria-hidden="true">↗</span></a>
+        </nav>
+        <div className="sidebar-bottom">
+          모의 주문 환경<p>실제 결제·배송·기기 연결 없음</p>
+        </div>
+      </aside>
+      <div className="workspace">
+        <header>
+          <span>
+            SMART HOME / <b>{title}</b>
+          </span>
+          <span className="badge">{admin ? "운영 관리" : "판매자 전용"} · 모의 서비스</span>
+        </header>
+        <main id="overview">
+          <div className="heading">
+            <div>
+              <span className="eyebrow">
+                {admin ? "SPACE & PACKAGE MANAGEMENT" : "YOUR SMART HOME STORE"}
+              </span>
+              <h1 ref={viewHeading} tabIndex={-1}>{view==="accounts" ? (admin ? "계정과 권한" : "내 계정") : view==="transactions" ? "주문 내역" : view==="activity" ? "변경 이력" : admin ? "공간과 패키지" : "스토어 한눈에"}</h1>
+              <p>
+                {view==="accounts" ? "로그인 계정과 이용 권한을 확인하세요." : view==="activity" ? "패키지의 공개 상태가 바뀐 기록입니다." : view==="transactions" ? "주문 구성과 금액을 확인하고 검색하세요." : admin ? "고객에게 공개할 공간과 패키지를 관리하세요." : "공간 패키지의 주문과 매출을 확인하세요."}
+              </p>
+            </div>
+            {user && (
+              <div className="actions">
+                <button disabled={busy || accessBusy} onClick={() => void logout()}>로그아웃</button>
+              </div>
+            )}
+          </div>
+          {!configured && (
+            <p className="notice">로그인 연결 설정을 확인 중입니다.</p>
+          )}
+
             <>
-              <div className="staff-account-id">내 계정 고유번호(UID)
+              <div hidden={view!=="accounts"} className="staff-account-id">내 계정 고유번호(UID)
                 <PrivateValue key={user.uid} value={user.uid} label="내 계정 고유번호"/>
               </div>
-              {admin && <StaffAccess auth={clientAuth()} user={user} apiOrigin={apiOrigin}
-                disabled={busy} onBusyChange={setAccessBusy} onChanged={()=>setRevision(v=>v+1)}/>}
-              <div className="status-line">
+              <div hidden={view!=="accounts"}>{admin ? <StaffAccess auth={clientAuth()} user={user} apiOrigin={apiOrigin}
+                disabled={busy} onBusyChange={setAccessBusy} onChanged={()=>setRevision(v=>v+1)}/> : <section className="card account-help"><h2>판매자 이용 권한</h2><p>권한이 필요하면 위 계정 고유번호를 확인해 마스터에게 전달하세요.</p><p>이메일과 고유번호는 눈 버튼으로 확인할 수 있습니다.</p></section>}</div>
+              <div className="status-line" hidden={view==="accounts"}>
                 <span>
                   {data ? "마지막으로 확인한 모의 거래" : "권한·DB 확인 중"}
                 </span>
                 <small>
                   {data
-                    ? `${date(data.asOf)} · ${admin ? 30 : 5}초 간격 확인 · 숨긴 탭 일시 중지`
+                    ? `${date(data.asOf)} 기준 · 자동 갱신`
                     : "로그인만으로 관리 권한이 부여되지 않습니다."}
                 </small>
               </div>
@@ -436,6 +450,7 @@ export default function StaffDashboard({
               )}
               {admin && data && (
                 <section
+                  hidden={view!=="packages"}
                   className="package-section"
                   aria-labelledby="package-heading"
                 >
@@ -547,7 +562,7 @@ export default function StaffDashboard({
                   </div>
                 </section>
               )}
-              <div className="dashboard-summary">
+              <div hidden={view!=="overview" && view!=="transactions"}><div hidden={view!=="overview"}><div className="dashboard-summary">
                 <div>
                   <span className="eyebrow">STORE OVERVIEW</span>
                   <h2>모의 거래 현황</h2>
@@ -589,16 +604,16 @@ export default function StaffDashboard({
                   <p>DB에 확정된 모의 승인 기준</p>
                 </article>
               </section>
-              <section id="transactions" className="card transactions">
+              </div><section id="transactions" className="card transactions">
                 <div className="card-heading">
                   <div>
-                    <h2>모의 주문·결제 내역</h2>
+                    <h2>{view==="overview" ? "최근 주문" : "모의 주문·결제 내역"}</h2>
                     <p>
-                      최근 100건 안에서 검색 · 전체 기간 누적 현황과 범위가
-                      다릅니다.
+                      {view==="overview" ? "가장 최근에 확인한 모의 주문 5건" : "최근 100건 안에서 검색할 수 있습니다."}
                     </p>
                   </div>
-                  <input
+                  {view==="overview" && <button type="button" onClick={()=>navigate("transactions")}>전체 주문 보기</button>}
+                  <input hidden={view!=="transactions"}
                     aria-label="주문 검색"
                     placeholder="패키지명·주문/결제 번호"
                     value={search}
@@ -617,7 +632,7 @@ export default function StaffDashboard({
                       </tr>
                     </thead>
                     <tbody>
-                      {payments.map((p) => (
+                      {shownPayments.map((p) => (
                         <tr
                           key={p.payment_id}
                           className={
@@ -659,11 +674,11 @@ export default function StaffDashboard({
                           </td>
                         </tr>
                       ))}
-                      {payments.length === 0 && (
+                      {shownPayments.length === 0 && (
                         <tr>
                           <td colSpan={5} className="empty">
                             {data
-                              ? search
+                              ? view==="transactions" && search
                                 ? "검색 조건에 맞는 주문이 없습니다."
                                 : "표시할 모의 주문이 없습니다."
                               : "데이터 확인 중입니다."}
@@ -674,8 +689,9 @@ export default function StaffDashboard({
                   </table>
                 </div>
               </section>
+              </div>
               {admin && data && (
-                <section
+                <section hidden={view!=="activity"}
                   className="card audit-section"
                   aria-labelledby="audit-heading"
                 >
@@ -723,13 +739,13 @@ export default function StaffDashboard({
                 </section>
               )}
             </>
-          )}
+
           {error && (
             <div role="alert" className="notice">
-              {error}
+              <span>{error}</span> <button onClick={()=>navigate("accounts")}>계정·권한 확인</button>
             </div>
           )}
-          <footer>PAYBRIDGE · 모든 주문과 매출은 모의 데이터입니다.</footer>
+          <footer>PAYBRIDGE <span>모의 주문 환경 · 실제 청구와 정산 없음</span></footer>
         </main>
       </div>
     </div>
@@ -828,3 +844,5 @@ function SpacePreview({ id }: { id: string }) {
     </div>
   );
 }
+
+function WorkspaceArt({admin}:{admin:boolean}) { return <svg className="workspace-art" viewBox="0 0 600 330" fill="none" aria-hidden="true"><circle cx="300" cy="178" r="146" fill="currentColor" opacity=".05"/><path d="M70 237 298 110 532 238 302 322Z" fill="currentColor" opacity=".07"/><rect x="112" y="56" width="376" height="218" rx="16" fill="white" stroke="currentColor" strokeOpacity=".15"/><path d="M112 96h376" stroke="currentColor" strokeOpacity=".12"/><circle cx="136" cy="77" r="4" fill="currentColor" opacity=".5"/><circle cx="150" cy="77" r="4" fill="currentColor" opacity=".2"/><rect x="134" y="117" width="86" height="135" rx="8" fill="currentColor" opacity=".08"/><path d="M150 138h50m-50 19h36m-36 19h42" stroke="currentColor" strokeOpacity=".4" strokeWidth="5" strokeLinecap="round"/>{admin ? <><rect x="240" y="119" width="224" height="39" rx="7" fill="currentColor" opacity=".07"/><rect x="240" y="168" width="224" height="36" rx="7" fill="currentColor" opacity=".05"/><rect x="240" y="214" width="224" height="36" rx="7" fill="currentColor" opacity=".07"/>{[138,186,232].map(y=><g key={y}><circle cx="259" cy={y} r="7" fill="currentColor" opacity=".4"/><path d={`M278 ${y}h80`} stroke="currentColor" strokeWidth="5" opacity=".25" strokeLinecap="round"/><path d={`m430 ${y} 4 4 8-9`} stroke="currentColor" strokeWidth="3"/></g>)}</> : <><rect x="240" y="119" width="103" height="47" rx="7" fill="currentColor" opacity=".08"/><rect x="355" y="119" width="109" height="47" rx="7" fill="currentColor" opacity=".05"/><path d="M246 239v-32m32 32v-46m32 46v-37m32 37v-63m32 63v-52m32 52v-77m32 77v-93" stroke="currentColor" strokeWidth="15" opacity=".45"/><path d="M242 243h222" stroke="currentColor" strokeOpacity=".2"/></>}<rect x="420" y="244" width="115" height="49" rx="12" fill="currentColor"/><path d="m438 267 6 6 12-15" stroke="white" strokeWidth="3"/><path d="M469 265h45m-45 10h28" stroke="white" strokeOpacity=".7" strokeWidth="4" strokeLinecap="round"/></svg>; }

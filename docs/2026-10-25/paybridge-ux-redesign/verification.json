@@ -1,0 +1,35 @@
+{
+  "dateKST": "2026-10-25",
+  "unitTestsPassed": 67,
+  "buildsPassed": [
+    "customer",
+    "merchant",
+    "admin"
+  ],
+  "nodeVersion": "22.23.4",
+  "browser": {
+    "fixturesOnly": true,
+    "suitesPassed": [
+      "role-workspaces",
+      "staff-access",
+      "social-login",
+      "dashboard-motion-ux",
+      "store-motion-ux",
+      "admin-hosting"
+    ],
+    "widthsWithoutOverflow": [
+      320,
+      390,
+      768,
+      1440
+    ],
+    "keyboardMenuFocus": true,
+    "groupedRoles": true,
+    "identitiesMasked": true,
+    "reducedMotion": true,
+    "pageErrors": []
+  },
+  "productionBusinessWrites": false,
+  "realProviderAuthenticationTested": false,
+  "deploymentStatus": "pending"
+}
