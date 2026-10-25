@@ -1,4 +1,4 @@
-> 2026-10-25 관리자 분리: 관리자 화면은 `apps/admin`의 Cloudflare 전용 앱으로 이동했습니다. 판매자·API는 Vercel에 유지합니다. [직접 배포 안내서](docs/MANUAL_DEPLOYMENT.md)와 [구조·검증 기록](CLOUDFLARE_ADMIN.md)을 확인하세요. 운영 배포는 아직 미완료입니다.
+> 2026-10-25 관리자 분리: 관리자 화면은 `apps/admin`의 Cloudflare 전용 앱으로 이동했습니다. 판매자·API는 Vercel에 유지합니다. [자동 배포 안내서](docs/AUTO_DEPLOYMENT.md)와 [구조·검증 기록](CLOUDFLARE_ADMIN.md)을 확인하세요. 운영 배포는 아직 미완료입니다.
 
 # Paybridge 모의 결제
 
@@ -24,18 +24,16 @@ npm run dev:merchant
 
 ## 배포
 
-[Windows 직접 배포 안내서](docs/MANUAL_DEPLOYMENT.md)를 순서대로 따르세요. Cloudflare 관리자 배포 → 실제 주소 연결 → PR 병합 → Vercel 자동 배포 확인 → Firebase 고객 Hosting 배포 순서입니다.
+[자동 배포 안내서](docs/AUTO_DEPLOYMENT.md)를 순서대로 따르세요. 최초 1회 GitHub Variables 4개·Secrets 2개, 관리자 실제 주소, Vercel 환경 변수를 설정한 뒤 PR을 main에 병합합니다.
 
-Vercel 자동 Git 배포 설정을 `apps/merchant/vercel.json`의 `git.deploymentEnabled: true`로 변경했습니다. 기존 저장소 연결과 Production main 추적이 설정돼 있으면 main 병합으로 운영 배포, 다른 브랜치 푸시로 미리보기 배포가 시작됩니다. 실제 빌드·Ready 상태를 확인하세요. 공통 `packages/staff-ui` 변경은 Vercel 자동 빌드 확인과 Cloudflare 관리자 재배포가 모두 필요합니다.
+- 고객 Firebase Hosting: `.github/workflows/deploy-firebase.yml`에서 main 변경 시 빌드·Hosting live 배포.
+- 관리자 Cloudflare Workers: `.github/workflows/deploy-cloudflare.yml`에서 main 변경 시 빌드·정적 파일 배포.
+- 판매자·API Vercel: `git.deploymentEnabled: true`와 기존 Git 연결로 main의 Production 자동 배포.
+- PR 검사: `.github/workflows/ci.yml`에서 비밀값 없이 테스트·세 앱 빌드.
 
-고객 화면만 배포할 때는 아래처럼 Hosting만 지정합니다. 기존 `deploy:firebase` 스크립트는 Firestore·Auth도 대상으로 하므로 이번 UI 변경에서는 사용하지 않습니다.
+고객·관리자 배포는 변경 경로에 따라 실행합니다. `packages/staff-ui`·루트 의존성 변경은 두 Actions의 배포 대상입니다. Vercel에서도 공통 코드 변경 시 새 빌드·Ready를 확인합니다. GitHub 변수·Secret만 수정했다면 해당 배포 작업의 Run workflow에서 main을 선택합니다.
 
-```bash
-npm run build --workspace @bridge/customer
-npx firebase-tools deploy --only hosting --project paybridge-mock
-```
-
-판매자·API는 기존 외부 MySQL 연결과 인증 설정을 유지합니다. 이번 화면 배포에 DB 마이그레이션·Functions 배포·계정 역할 재부여는 필요하지 않습니다. 관리자 화면에는 Firebase 공개 설정만 넣으며 DB 비밀번호나 Firebase 비공개 키를 넣지 않습니다.
+Firebase 자동화는 Hosting만 배포합니다. 기존 `deploy:firebase` 스크립트는 Firestore·Auth도 대상으로 하므로 이 자동화에서는 호출하지 않습니다. MySQL·Firebase 서버 인증 설정은 Vercel에 유지하고 관리자 앱에는 공개 웹 설정만 포함합니다. 실제 Firebase·Cloudflare 운영 성공은 최초 연결 후 확인해야 합니다.
 
 ## DB 책임과 재시도
 

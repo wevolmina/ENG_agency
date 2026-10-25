@@ -2,7 +2,7 @@
 
 기준: 2026-10-25 한국 시간. 코드와 로컬 검증 완료. GitHub 작업 브랜치와 [PR #1](https://github.com/wevolmina/paybridge-mock/pull/1)에 반영했으며, main 병합·운영 배포·실계정 접속 검증은 아직 완료하지 않았다.
 
-직접 배포할 때는 [Windows 직접 배포 안내서](docs/MANUAL_DEPLOYMENT.md)를 순서대로 따른다. 명령어·설정 입력 위치·PR 병합·Vercel 자동 배포 확인·완료 확인·오류 해결을 포함한다.
+직접 배포할 때는 [자동 배포 안내서](docs/AUTO_DEPLOYMENT.md)를 순서대로 따른다. GitHub Actions의 변수·Secret 등록, 최초 관리자 주소 확보, PR 병합과 세 사이트 자동 배포 확인을 포함한다.
 
 |사용자|호스팅|소스|역할|
 |---|---|---|---|
@@ -55,7 +55,7 @@ npm run deploy:admin
 
 `apps/admin/wrangler.jsonc`의 Worker 이름은 `paybridge-admin`, 정적 파일 폴더는 `dist`다. 배포 명령은 관리자 앱을 빌드한 다음 정적 파일을 업로드한다. 응답으로 나온 **실제 관리자 URL**을 보관한다. 예시 주소의 계정 이름을 추측해서 사용하지 않는다.
 
-Cloudflare에서 Git 연동 빌드를 쓰려면 저장소 루트에서 설치한 뒤 `npm run build:admin`으로 빌드하고, `apps/admin`에서 Wrangler를 실행하거나 루트에서 `npx wrangler deploy --config apps/admin/wrangler.jsonc`로 배포한다. Firebase 공개 설정은 빌드 환경에 제공한다. `apps/admin/dist`는 배포용 산출물이며 Git에 올리지 않는다.
+위 명령은 최초 관리자 주소를 확보하거나 수동 복구할 때 사용한다. 반복 배포는 `.github/workflows/deploy-cloudflare.yml`이 main 변경으로 실행한다. GitHub Variables·Secrets는 자동 배포 안내서대로 등록한다. 별도 Cloudflare Workers Builds Git 연결을 중복 구성하지 않는다. `apps/admin/dist`는 배포용 산출물이며 Git에 올리지 않는다.
 
 ## 3. Vercel 연결 설정·재배포
 
@@ -72,9 +72,9 @@ NEXT_PUBLIC_ADMIN_SITE_URL=https://실제_관리자_호스트
 
 새 사이트 도메인을 Firebase Authentication의 승인된 도메인 목록에도 등록해 인증 흐름을 정리한다. 웹 API 키에 HTTP referrer 제한이 있으면 실제 관리자 도메인도 허용한다. `firebase.json`의 `auth.authorizedDomains`에는 아직 새 주소가 없으므로, 향후 `firebase deploy --only auth`를 실행하기 전에 실제 호스트를 설정 파일에도 반영해야 한다. 실제 주소가 정해지지 않아 이번에는 도메인 설정이나 Auth 배포를 수행하지 않았다.
 
-## 4. 구매자 화면 반영
+## 4. 구매자 자동 배포와 수동 복구
 
-구매자 앱의 관리자 메뉴 제거를 운영에도 반영하려면 기존 Firebase 공개 설정을 유지한 채 고객 앱을 빌드하고 Hosting만 배포한다.
+구매자 화면은 main 변경 시 `.github/workflows/deploy-firebase.yml`이 공개 설정으로 빌드해 Hosting만 배포한다. 아래 명령은 자동 작업 대신 수동 복구가 필요할 때만 사용한다.
 
 ```bash
 npm run build --workspace @bridge/customer
@@ -110,10 +110,12 @@ npm run dev:admin
 
 ## 배포 진행 상태
 
-- GitHub 권한 연결 후 소스를 `feat/admin-cloudflare-ui-release`에 업로드하고 PR #1을 생성했다. 앞선 403 오류는 해소됐다.
-- 이 작업 환경에서는 Cloudflare 실제 Worker를 생성하지 않았다. 사용자가 직접 배포하는 방식으로 전환했다. 사용자 PC에서는 Wrangler 인증을 별도로 확인한다.
-- `apps/merchant/vercel.json`의 `git.deploymentEnabled`를 `true`로 변경했다. 기존 Git 연결과 Production main 추적을 확인한 뒤 PR을 병합하면 Vercel 자동 배포 대상이 된다. 실제 자동 빌드·운영 성공은 별도 확인한다.
+- 소스와 문서는 `feat/admin-cloudflare-ui-release` 및 PR #1에 반영한다. 새 관리자 주소를 준비하기 전 main 병합은 보류한다.
+- Cloudflare 자동 배포는 `.github/workflows/deploy-cloudflare.yml`의 GitHub Actions 경로로 구성했다. main의 관리자·공통 코드 변경을 배포하며 별도 Workers Builds Git 연결은 사용하지 않는다.
+- Firebase 고객 화면은 `.github/workflows/deploy-firebase.yml`에서 Hosting live만 배포한다. Auth·Firestore·Functions는 배포하지 않는다.
+- Vercel 자동 Git 배포는 `git.deploymentEnabled: true`다. 이전 커밋의 미리보기 자동 배포 성공을 확인했으며 운영 main 배포와 구분한다.
+- GitHub Variables 4개·Secrets 2개의 실제 등록과 첫 Firebase·Cloudflare 운영 실행은 별도 확인 대상이다. 이 작업 환경에서 실제 Worker 생성·운영 배포는 수행하지 않았다.
 
-Cloudflare 관리자 배포 → 실제 URL 확정 → Vercel 환경 변수·Firebase 도메인 설정 → PR 병합 → Vercel 자동 배포 확인 → 고객 Hosting 배포 → 운영 로그인·권한 확인 순서로 진행한다.
+최초 설정·관리자 실제 주소 확보 → Vercel 두 관리자 주소·Firebase 도메인 설정 → PR 병합 → Firebase·Cloudflare Actions와 Vercel Production 결과 확인 → 운영 로그인·권한 확인 순서다. 일상적인 반복 배포는 main 변경으로 실행한다.
 
 공식 참고: [Cloudflare Static Assets](https://developers.cloudflare.com/workers/static-assets/) · [SPA 라우팅](https://developers.cloudflare.com/workers/static-assets/routing/single-page-application/) · [Wrangler 설정](https://developers.cloudflare.com/workers/wrangler/configuration/).
