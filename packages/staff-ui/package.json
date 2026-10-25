@@ -1,0 +1,14 @@
+{
+  "name": "@bridge/staff-ui",
+  "private": true,
+  "version": "0.0.0",
+  "exports": {
+    ".": "./StaffDashboard.tsx",
+    "./style.css": "./style.css",
+    "./dashboard-ux.css": "./dashboard-ux.css"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "firebase": "^12.0.0"
+  }
+}

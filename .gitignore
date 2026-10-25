@@ -13,3 +13,5 @@ dist/
 service-account*.json
 test-results/
 .qa/
+
+.wrangler/

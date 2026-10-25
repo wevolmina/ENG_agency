@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-10-25T01:53:16.402Z",
+  "method": "Own headless browser with mocked Auth and staff APIs; not actual account access",
+  "results": [
+    {
+      "path": "/",
+      "threeLines": true,
+      "total277000": true,
+      "searchByLineName": true,
+      "mobile390NoPageOverflow": true
+    },
+    {
+      "path": "/admin",
+      "threeLines": true,
+      "total277000": true,
+      "searchByLineName": true,
+      "mobile390NoPageOverflow": true
+    }
+  ],
+  "pageErrors": []
+}

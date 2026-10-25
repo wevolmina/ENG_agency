@@ -1,3 +1,5 @@
+> 2026-10-25 관리자 분리: 관리자 화면은 `apps/admin`의 Cloudflare 전용 앱으로 이동했습니다. 판매자·API는 Vercel에 유지합니다. [구조·배포·검증·남은 연결 설정](CLOUDFLARE_ADMIN.md)을 먼저 확인하세요. 운영 배포는 아직 미완료입니다.
+
 # Paybridge 모의 결제
 
 Firestore는 주문 요청을 접수하고 MySQL은 확정 주문·항목·결제를 관리합니다. 고객 영수증과 판매자 대시보드는 Vercel API를 통해 동일한 MySQL 결제를 조회합니다.

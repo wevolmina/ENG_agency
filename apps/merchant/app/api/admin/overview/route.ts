@@ -1,3 +1,4 @@
+import {adminCors,adminOptions,adminOriginAllowed} from "../../../../lib/admin-http";
 import type {RowDataPacket} from "mysql2/promise";
 import {authorizedStaff} from "../../../../lib/staff";
 import {spaceCatalog} from "../../../../lib/catalog";
@@ -6,7 +7,8 @@ import {merchantPayments} from "../../../../lib/payments";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 export async function GET(request:Request){
- const headers={"Cache-Control":"private, no-store"};
+ const headers=adminCors(request,"GET");
+ if(!adminOriginAllowed(request))return Response.json({error:"ADMIN_ORIGIN_NOT_ALLOWED"},{status:403,headers});
  try{
   const staff=await authorizedStaff(request,"admin");if(!staff)return Response.json({error:"ADMIN_ACCESS_REQUIRED"},{status:403,headers});
   const pool=getPool();
@@ -15,3 +17,5 @@ export async function GET(request:Request){
   return Response.json({...(await merchantPayments(pool,staff.merchantId)),packages:await spaceCatalog(pool,true),roles,audit,mode:"mock"},{headers});
  }catch{return Response.json({error:"ADMIN_UNAVAILABLE"},{status:503,headers})}
 }
+
+export function OPTIONS(request:Request){return adminOptions(request,"GET")}

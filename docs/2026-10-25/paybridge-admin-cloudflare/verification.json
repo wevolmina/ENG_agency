@@ -1,0 +1,12 @@
+{
+  "method": "Two separate local origins, intercepted Auth/data APIs; real local CORS/unauthorized endpoint checks",
+  "preflight": true,
+  "missingTokenDenied": true,
+  "wrongOriginDenied": true,
+  "legacyRedirect": true,
+  "separateLoginSessions": true,
+  "adminBearerWithoutCookies": true,
+  "adminWriteAndReadback": true,
+  "separateLogout": true,
+  "pageErrors": []
+}

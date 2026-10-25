@@ -1,0 +1,18 @@
+{
+  "method": "Local store with intercepted Auth/catalog/checkout/receipt; no DB writes",
+  "spaceShortcuts": 3,
+  "emptyGuidance": true,
+  "total277000": true,
+  "consentResets": true,
+  "widthsWithoutOverflow": [
+    320,
+    390,
+    768,
+    1440
+  ],
+  "reducedMotion": true,
+  "retryKeepsRequest": true,
+  "receiptFocus": true,
+  "restoreDoesNotReplay": true,
+  "pageErrors": []
+}
