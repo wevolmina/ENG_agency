@@ -37,4 +37,10 @@ Vercel Production에 등록한 환경 변수는 재배포 후 적용한다. 준�
 
 ## 배포 상태
 
-소스 검증 완료. main 반영 후 자동 배포와 운영 화면 확인 결과를 아래에 기록한다.
+- [PR #4](https://github.com/wevolmina/paybridge-mock/pull/4) 병합. 운영 검증 소스: `ba297aefc11960518226d0781f74cd2ae82dd26f`.
+- [PR 검사 성공](https://github.com/wevolmina/paybridge-mock/actions/runs/40170272262), [main 검사 성공](https://github.com/wevolmina/paybridge-mock/actions/runs/40170356575).
+- [Vercel 운영 배포 성공](https://vercel.com/wevolmina94-9986/paybridge-mock/H4AKgfdtfe5zyjzFQfW8CgW57zYQ). 기존 판매자 주소에서 새 세 버튼과 구글 버튼 활성화를 확인했다.
+- [고객 Firebase 자동 배포 성공](https://github.com/wevolmina/paybridge-mock/actions/runs/40170356579), [관리자 Cloudflare 자동 배포 성공](https://github.com/wevolmina/paybridge-mock/actions/runs/40170356541).
+- 운영 설정 조회: 고객·관리자·판매자 Origin과 판매자의 동일 출처 GET 모두 200. Google=true, Kakao=false, Naver=false. 외부 Origin과 Origin/동일 출처 정보가 모두 없는 요청은 403.
+- 카카오·네이버 앱과 키 등록은 사용자가 완료했다고 알렸지만, 현재 운영 서버에서는 준비 완료로 인식하지 못한다. 원인을 특정하지 않았으며 키 값을 읽거나 변경하지 않았다.
+- 실제 구글·카카오·네이버 계정 로그인 완료 및 해당 계정의 운영 DB 판매자 권한은 아직 미확인이다. 버튼 구현·배포와 실제 로그인 성공을 구분한다.

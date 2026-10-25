@@ -33,5 +33,28 @@
   "realProviderAccountSignInTested": false,
   "productionRoleChanges": false,
   "productionOrderWrites": false,
-  "deploymentStatus": "pending"
+  "deploymentStatus": "success",
+  "sourceCommit": "ba297aefc11960518226d0781f74cd2ae82dd26f",
+  "pullRequest": "https://github.com/wevolmina/paybridge-mock/pull/4",
+  "deployment": {
+    "vercel": "https://vercel.com/wevolmina94-9986/paybridge-mock/H4AKgfdtfe5zyjzFQfW8CgW57zYQ",
+    "customerRun": 40170356579,
+    "adminRun": 40170356541,
+    "checksRun": 40170356575,
+    "allSucceeded": true
+  },
+  "productionReadiness": {
+    "google": true,
+    "kakao": false,
+    "naver": false
+  },
+  "productionChecks": {
+    "customerOrigin": 200,
+    "adminOrigin": 200,
+    "merchantOrigin": 200,
+    "merchantSameOriginWithoutOriginHeader": 200,
+    "untrustedOrigin": 403,
+    "missingOriginAndFetchMetadata": 403,
+    "merchantGoogleButtonEnabled": true
+  }
 }
