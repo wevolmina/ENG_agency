@@ -1,15 +1,44 @@
 {
   "dateKST": "2026-10-25",
   "unitTestsPassed": 71,
-  "buildsPassed": ["customer", "merchant", "admin"],
-  "browserSuitesPassed": ["staff-access", "social-login", "role-workspaces"],
+  "buildsPassed": [
+    "customer",
+    "merchant",
+    "admin"
+  ],
+  "browserSuitesPassed": [
+    "staff-access",
+    "social-login",
+    "role-workspaces"
+  ],
   "nonMasterApprovalControlsHidden": true,
   "safeStageDiagnostics": true,
-  "widths": [320, 390, 768, 1440],
+  "widths": [
+    320,
+    390,
+    768,
+    1440
+  ],
   "productionGoogleFailureReproduced": true,
-  "exactProductionGoogleCode": "not-yet-separated-in-old-UI",
+  "exactProductionGoogleCode": "auth/unauthorized-domain",
   "providerAuthenticationCompleted": false,
   "providerSettingsChanged": false,
   "productionRoleWrites": false,
-  "deploymentStatus": "pending"
+  "deploymentStatus": "success",
+  "sourceCommit": "8ce312204ade21d2eaea43ee95365233a9b8940a",
+  "pullRequest": "https://github.com/wevolmina/paybridge-mock/pull/8",
+  "actualFirebaseSellerDomainMissing": true,
+  "googleProviderEnabled": true,
+  "domainAdditionPreparedNotSaved": true,
+  "kakaoAccountAuthenticationReachedConsent": true,
+  "kakaoConsentSubmitted": false,
+  "naverLiveAuthenticationTested": false,
+  "deployments": {
+    "vercel": "https://vercel.com/wevolmina94-9986/paybridge-mock/CTY1ZvRv4BHQN2KLGLm3g4CuMVk8",
+    "cloudflareRun": 40195676616,
+    "firebaseRun": 40195676632,
+    "mainChecksRun": 40195676626,
+    "prChecksRun": 40195533234,
+    "allSucceeded": true
+  }
 }
