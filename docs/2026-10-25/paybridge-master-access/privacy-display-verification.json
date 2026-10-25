@@ -1,6 +1,5 @@
 {
   "dateKST": "2026-10-25",
-  "unitTestsExpected": 67,
   "browser": {
     "method": "Isolated Auth/API fixtures; no real setup password or production role writes",
     "setupPasswordCleared": true,
@@ -12,6 +11,7 @@
     "emailsAndUidsMaskedByDefault": true,
     "independentEyeToggles": true,
     "passwordToggleResetsWhenCleared": true,
+    "longIdentityRevealLayout": true,
     "staleLoginCannotWrite": true,
     "ordinaryAccountCannotManage": true,
     "pageErrors": [],
@@ -28,5 +28,22 @@
   ],
   "productionRoleWrites": false,
   "providerSecretsReturned": false,
-  "deploymentStatus": "pending"
+  "deploymentStatus": "success",
+  "unitTestsPassed": 67,
+  "buildsPassed": [
+    "customer",
+    "merchant",
+    "admin"
+  ],
+  "sourceCommit": "04952f0b0629acb1ba490261d5f2c53094f13cca",
+  "pullRequest": "https://github.com/wevolmina/paybridge-mock/pull/6",
+  "deployments": {
+    "vercel": "https://vercel.com/wevolmina94-9986/paybridge-mock/Ggw5Z3Ed5wMCTJ8rSwTsdR6TwjBm",
+    "cloudflareRun": 40178978273,
+    "firebaseRun": 40178978267,
+    "checksRun": 40178978306,
+    "allSucceeded": true
+  },
+  "productionAdminLoginVisibilityControlObserved": true,
+  "realMasterProfileLookupTestedByAgent": false
 }
