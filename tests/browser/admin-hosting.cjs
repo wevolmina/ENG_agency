@@ -61,6 +61,7 @@ const merchant = process.env.STAFF_BASE_URL || "http://127.0.0.1:3000",
           }),
         ).toString("base64url") +
         ".fixture";
+    await context.route("**/api/auth/social/config", r => r.fulfill({headers: {"access-control-allow-origin": "*"}, json: {google:false,kakao:false,naver:false}}));
     await context.route("**/identitytoolkit.googleapis.com/**", (r) =>
       r.fulfill({
         headers: { "access-control-allow-origin": "*" },
