@@ -1,3 +1,5 @@
+> 2026-10-25 관리자 분리: 관리자 화면은 `apps/admin`의 Cloudflare 전용 앱으로 이동했습니다. 판매자·API는 Vercel에 유지합니다. [직접 배포 안내서](docs/MANUAL_DEPLOYMENT.md)와 [구조·검증 기록](CLOUDFLARE_ADMIN.md)을 확인하세요. 운영 배포는 아직 미완료입니다.
+
 # Paybridge 모의 결제
 
 Firestore는 주문 요청을 접수하고 MySQL은 확정 주문·항목·결제를 관리합니다. 고객 영수증과 판매자 대시보드는 Vercel API를 통해 동일한 MySQL 결제를 조회합니다.
@@ -22,13 +24,18 @@ npm run dev:merchant
 
 ## 배포
 
-```sh
-npm run deploy:firebase
+[Windows 직접 배포 안내서](docs/MANUAL_DEPLOYMENT.md)를 순서대로 따르세요. Cloudflare 관리자 배포 → 실제 주소 연결 → PR 병합 → Vercel 자동 배포 확인 → Firebase 고객 Hosting 배포 순서입니다.
+
+Vercel 자동 Git 배포 설정을 `apps/merchant/vercel.json`의 `git.deploymentEnabled: true`로 변경했습니다. 기존 저장소 연결과 Production main 추적이 설정돼 있으면 main 병합으로 운영 배포, 다른 브랜치 푸시로 미리보기 배포가 시작됩니다. 실제 빌드·Ready 상태를 확인하세요. 공통 `packages/staff-ui` 변경은 Vercel 자동 빌드 확인과 Cloudflare 관리자 재배포가 모두 필요합니다.
+
+고객 화면만 배포할 때는 아래처럼 Hosting만 지정합니다. 기존 `deploy:firebase` 스크립트는 Firestore·Auth도 대상으로 하므로 이번 UI 변경에서는 사용하지 않습니다.
+
+```bash
+npm run build --workspace @bridge/customer
+npx firebase-tools deploy --only hosting --project paybridge-mock
 ```
 
-Firebase Hosting·Firestore·기본 Auth를 배포합니다. Functions는 배포하지 않습니다. Vercel 프로젝트는 apps/merchant를 루트로 사용하며 GitHub main 변경으로 배포합니다. MySQL은 외부 관리형 서비스에 두고 TLS 인증서를 검증합니다. DB 마이그레이션은 001과 002를 순서대로 실행하며 기존 데이터는 삭제하지 않습니다.
-
-고객은 Firebase 익명 인증, 판매자는 이메일/비밀번호 인증 및 관리자에게 부여받은 merchant_id 클레임을 사용합니다. 클레임이 없으면 매출 조회는 거절됩니다. 관리자 자격 증명이 준비된 별도 관리 환경에서 기존 `scripts/grant-merchant.mjs`를 사용할 수 있습니다. 앱 배포 자체에는 서비스 계정 비밀 키가 필요하지 않습니다.
+판매자·API는 기존 외부 MySQL 연결과 인증 설정을 유지합니다. 이번 화면 배포에 DB 마이그레이션·Functions 배포·계정 역할 재부여는 필요하지 않습니다. 관리자 화면에는 Firebase 공개 설정만 넣으며 DB 비밀번호나 Firebase 비공개 키를 넣지 않습니다.
 
 ## DB 책임과 재시도
 

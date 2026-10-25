@@ -4,10 +4,12 @@
   "workspaces": [
     "apps/customer",
     "apps/merchant",
-    "functions"
+    "functions",
+    "apps/admin",
+    "packages/staff-ui"
   ],
   "scripts": {
-    "build": "npm run build --workspace @bridge/customer && npm run build --workspace @bridge/merchant",
+    "build": "npm run build --workspace @bridge/customer && npm run build --workspace @bridge/merchant && npm run build --workspace @bridge/admin",
     "test": "tsx --test tests/*.test.ts",
     "test:integration": "tsx --test tests/integration/*.test.ts",
     "dev:customer": "npm run dev --workspace @bridge/customer",
@@ -16,7 +18,10 @@
     "merchant:grant": "node scripts/grant-merchant.mjs",
     "check:deploy": "node scripts/check-deploy.mjs",
     "deploy:firebase": "npx firebase-tools deploy --only hosting,firestore,auth",
-    "deploy:vercel": "npx vercel --prod"
+    "deploy:vercel": "npx vercel --prod",
+    "build:admin": "npm run build --workspace @bridge/admin",
+    "dev:admin": "npm run dev --workspace @bridge/admin",
+    "deploy:admin": "npm run deploy --workspace @bridge/admin"
   },
   "devDependencies": {
     "tsx": "^4.20.0",

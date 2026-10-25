@@ -1,0 +1,33 @@
+{
+  "method": "Local production build, intercepted Auth/API responses, no production writes",
+  "results": [
+    {
+      "role": "admin",
+      "baselineQuiet": true,
+      "unchangedQuiet": true,
+      "eventPolicy": true,
+      "widthsWithoutPageOverflow": [
+        320,
+        390,
+        768,
+        1440
+      ],
+      "reducedMotion": true,
+      "pageErrors": []
+    },
+    {
+      "role": "merchant",
+      "baselineQuiet": true,
+      "unchangedQuiet": true,
+      "eventPolicy": true,
+      "widthsWithoutPageOverflow": [
+        320,
+        390,
+        768,
+        1440
+      ],
+      "reducedMotion": true,
+      "pageErrors": []
+    }
+  ]
+}
