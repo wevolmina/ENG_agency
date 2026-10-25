@@ -29,11 +29,11 @@
 
 역할 보완 후 기존 실패 실행의 Re-run failed jobs를 사용할 수 있다. 이후 main 변경이 배포 대상 파일을 바꿨다면 최신 main으로 Run workflow를 실행한다.
 
-Firebase 인증의 새 관리자 호스트 승인 추가도 아직 저장하지 않았다. 입력안은 `paybridge-admin.evolvix.workers.dev`이며 OAuth 로그인 허용 범위 변경에 대한 사용자 확인 후 반영한다. 현재 이메일·비밀번호 로그인과 관리자 역할 검사를 새로 허용하는 조치는 아니다.
+사용자가 새 관리자 도메인 추가를 승인한 뒤 Firebase 승인 도메인 목록에 `paybridge-admin.evolvix.workers.dev`를 저장했고 목록의 Custom 행에서 확인했다. `firebase.json`에도 같은 호스트를 추가했다. 계정·역할·로그인 제공자는 변경하지 않았다.
 
 ## 다음 단계
 
 1. 기존 배포 서비스 계정에 API 상태 조회 역할 추가.
-2. 사용자 확인 후 Firebase 승인 도메인에 새 관리자 호스트 추가하고 firebase.json 기록도 맞춤.
+2. 완료: Firebase 승인 도메인 추가와 firebase.json 기록 반영.
 3. 실패한 Firebase 배포 재실행·Hosting 성공 확인.
 4. 관리자 기존 계정의 실제 조회와 구매자·판매자 최종 화면 확인.

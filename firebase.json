@@ -55,7 +55,8 @@
       "localhost",
       "paybridge-mock.web.app",
       "paybridge-mock.firebaseapp.com",
-      "paybridge-mock.vercel.app"
+      "paybridge-mock.vercel.app",
+      "paybridge-admin.evolvix.workers.dev"
     ],
     "providers": {
       "anonymous": true,

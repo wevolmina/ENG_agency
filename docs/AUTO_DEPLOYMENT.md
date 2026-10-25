@@ -32,7 +32,7 @@ CI/CD는 Continuous Integration / Continuous Delivery 또는 Deployment의 줄�
 | 관리자 실제 운영 URL | `https://paybridge-admin.evolvix.workers.dev` |
 | 고객 Firebase | 설정·설치·테스트·빌드 통과. 게시 단계에서 `serviceusage.services.get` 권한 부족으로 실패 |
 
-사용자가 GitHub 설정 등록을 진행한 뒤 실제 자동 배포를 실행했습니다. Secret 값을 읽거나 새 키를 생성하지 않았습니다. Cloudflare 게시 성공과 Firebase 게시 실패를 구분합니다. Firebase 승인 도메인 추가는 아직 저장하지 않았으며 사용자 확인을 기다립니다.
+사용자가 GitHub 설정 등록을 진행한 뒤 실제 자동 배포를 실행했습니다. Secret 값을 읽거나 새 키를 생성하지 않았습니다. Cloudflare 게시 성공과 Firebase 게시 실패를 구분합니다. 사용자 승인 후 Firebase 인증의 승인 도메인에 `paybridge-admin.evolvix.workers.dev`를 추가했고 목록에서 저장 결과를 확인했습니다. `firebase.json` 기록도 맞췄습니다.
 
 ## 3. 처음 한 번: GitHub 변수 4개 입력
 

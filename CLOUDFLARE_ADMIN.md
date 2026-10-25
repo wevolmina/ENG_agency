@@ -70,7 +70,7 @@ NEXT_PUBLIC_ADMIN_SITE_URL=https://실제_관리자_호스트
 
 변경한 Vercel 코드를 재배포해야 새 관리자 사이트의 API 요청과 기존 주소 이동이 동작한다. 환경 변수만 바꾸고 이전 배포를 계속 사용하면 적용되지 않는다. Vercel 프로젝트 루트가 `apps/merchant`라면 모노레포의 `packages/staff-ui`도 빌드 입력에 포함되어야 한다. 공유 패키지는 npm workspace와 Next.js `transpilePackages`로 연결했다.
 
-새 사이트 도메인을 Firebase Authentication의 승인된 도메인 목록에도 등록해 인증 흐름을 정리한다. 웹 API 키에 HTTP referrer 제한이 있으면 실제 관리자 도메인도 허용한다. `firebase.json`의 `auth.authorizedDomains`에는 아직 새 주소가 없으므로, 향후 `firebase deploy --only auth`를 실행하기 전에 실제 호스트를 설정 파일에도 반영해야 한다. 실제 주소가 정해지지 않아 이번에는 도메인 설정이나 Auth 배포를 수행하지 않았다.
+사용자 승인 후 Firebase Authentication의 승인 도메인에 `paybridge-admin.evolvix.workers.dev`를 저장했고 `firebase.json`의 `auth.authorizedDomains` 기록도 맞췄다. 기존 도메인은 유지했다. 웹 API 키에 별도의 HTTP referrer 제한이 있으면 실제 관리자 도메인 허용도 확인한다. Auth 전체 배포는 수행하지 않았다.
 
 ## 4. 구매자 자동 배포와 수동 복구
 
@@ -114,7 +114,7 @@ npm run dev:admin
 - Cloudflare 자동 배포 성공: https://paybridge-admin.evolvix.workers.dev/ . Worker 버전 `20009ec2-5f38-4485-a707-039f23042106`.
 - Vercel의 두 관리자 주소 변수를 실제 Origin으로 저장하고 Production Ready를 확인했다. 기존 `/admin`의 307 이동, 허용 Origin의 204, 다른 Origin과 비로그인 조회의 403을 확인했다.
 - 고객 Firebase는 설정 검사·설치·테스트·빌드 후 게시 단계에서 `serviceusage.services.get` 부족으로 실패했다. 기존 배포 계정의 Service Usage Viewer 역할 보완 후 재실행한다.
-- Firebase 새 관리자 도메인 승인은 아직 저장하지 않았다. 실제 계정의 관리자 자료 조회·변경은 미시험이다.
+- Firebase 새 관리자 도메인 승인을 사용자 확인 후 저장했다. 실제 계정의 관리자 자료 조회·변경은 미시험이다.
 - [상세 진행 기록](docs/DEPLOYMENT_PROGRESS_2026-10-25.md).
 
 공식 참고: [Cloudflare Static Assets](https://developers.cloudflare.com/workers/static-assets/) · [SPA 라우팅](https://developers.cloudflare.com/workers/static-assets/routing/single-page-application/) · [Wrangler 설정](https://developers.cloudflare.com/workers/wrangler/configuration/).
