@@ -182,7 +182,7 @@ API 키에 HTTP referrer 제한을 걸어 뒀다면 해당 기존 키에도 실�
 2. `Deploy admin to Cloudflare` 성공 → Wrangler 로그의 실제 관리자 주소 확인.
 3. Vercel → Deployments → 같은 main 커밋의 **Production / Ready** 확인.
 
-Actions는 변수·Secret 이름 누락, 잘못된 Firebase 프로젝트, 잘못된 Cloudflare Account ID 형식·API 주소를 검사하고 실패 시 배포를 중단합니다. 테스트·해당 앱 빌드가 실패해도 배포하지 않습니다. 이전 main 커밋을 재실행하면 최신 main과 비교해 오래된 배포를 건너뜁니다.
+Actions는 변수·Secret 이름 누락, 잘못된 Firebase 프로젝트, 잘못된 Cloudflare Account ID 형식·API 주소를 검사하고 실패 시 배포를 중단합니다. 테스트·해당 앱 빌드가 실패해도 배포하지 않습니다. 이전 main 커밋을 재실행하면 최신 main의 해당 배포 대상 파일과 비교합니다. 대상 파일이 달라졌으면 오래된 배포를 건너뛰고, 이후 문서만 바뀌었다면 원래 배포를 진행합니다.
 
 저장소 Settings → Actions → General에서 Actions가 허용되어 있어야 합니다. 조직이 허용 액션을 제한한다면 워크플로에 명시한 `actions/checkout`, `actions/setup-node`, `FirebaseExtended/action-hosting-deploy`의 고정 SHA 사용을 허용해야 합니다. GitHub 토큰은 `contents: read`만 사용하며, Firebase·Cloudflare 배포 권한은 각 전용 Secret으로 제공합니다.
 
@@ -225,17 +225,19 @@ Firebase 배포는 공식 Hosting 액션의 `channelId: live`를 사용합니다
 | CORS 오류 | 관리자 주소와 Vercel `ADMIN_SITE_ORIGIN` 비교. Preview URL과 운영 URL 혼동 주의 |
 | Vercel 자동 배포가 안 시작됨 | Git 연결·Production main 추적·작성자 권한·Ignored Build Step 확인 |
 | 문서 수정 후 Firebase·Cloudflare 실행이 없음 | 경로 필터에 의한 정상 생략. 재배포가 필요하면 Run workflow 사용 |
-| 오래된 배포가 skipped | 최신 main과 다른 커밋. 최신 main으로 Run workflow 실행 |
+| 오래된 배포가 skipped | 최신 main의 해당 대상 소스가 달라짐. 최신 main으로 Run workflow 실행 |
 
 고객 화면·판매자 로그인·관리자 로그인/조회·기존 Vercel `/admin`의 새 주소 이동을 각각 확인합니다. 관리자 로그아웃 후 판매자 로그인은 유지되어야 합니다. 비로그인·일반 판매자가 관리자 자료를 조회할 수 없어야 합니다.
 
 배포 성공 표시가 실제 관리자 권한·DB 연결 성공을 보장하지는 않습니다. 모의 결제를 누르면 운영 Firestore·MySQL에 데모 주문이 생기므로 화면 확인과 구분하세요. 현재 패키지 변경 API는 `bedroom-lighting`만 입력으로 허용하는 기존 제한이 있습니다.
 
-롤백은 각 호스팅의 정상 버전 기록이나 수정·되돌림 PR로 처리합니다. 현재 Actions는 오래된 커밋의 단순 Re-run 배포를 막으므로 소스 복구는 **새 revert 커밋을 main에 반영**하는 방식이 맞습니다. 호스팅에서 수동 롤백한 뒤에도 main 소스를 맞추지 않으면 다음 자동 배포가 다시 최신 코드로 바꿉니다. 배포 롤백으로 DB 주문이 자동 삭제되지는 않습니다.
+롤백은 각 호스팅의 정상 버전 기록이나 수정·되돌림 PR로 처리합니다. 현재 Actions는 대상 소스가 달라진 오래된 커밋의 Re-run 배포를 막으므로 소스 복구는 **새 revert 커밋을 main에 반영**하는 방식이 맞습니다. 호스팅에서 수동 롤백한 뒤에도 main 소스를 맞추지 않으면 다음 자동 배포가 다시 최신 코드로 바꿉니다. 배포 롤백으로 DB 주문이 자동 삭제되지는 않습니다.
 
 ## 11. 검증 기록과 남은 연결
 
-이번 변경은 Node.js 22에서 단위 테스트와 세 앱 빌드를 확인했습니다. 잘못된 프로젝트·설정 누락·비밀값 비노출을 확인하는 배포 설정 테스트를 추가했습니다. 워크플로 문법·경로·고정 액션 SHA를 점검하고 실제 업로드 없는 관리자 사전 검사를 수행합니다.
+이번 변경은 Node.js 22.23.4에서 단위 테스트 **31개**와 세 앱 빌드를 통과했습니다. 잘못된 프로젝트·설정 누락·비밀값 비노출을 확인하는 배포 설정 테스트 4개를 포함합니다. actionlint 1.7.12로 워크플로 문법을 검사했고, 경로 필터·고정 액션 SHA·main 배포 제한을 점검했습니다. 실제 업로드 없는 관리자 사전 검사도 통과했습니다.
+
+GitHub에 새 Actions 실행이 생성됐는지도 최초 연결 시 확인해야 합니다. 로컬 워크플로 검사와 실제 GitHub 실행은 별개입니다.
 
 운영 성공으로 표시하려면 GitHub Secrets·Variables 등록 후 **최초 Firebase·Cloudflare Actions 성공**, Vercel **Production Ready**, 운영 관리자 로그인·조회까지 따로 확인해야 합니다. 문서 저장이나 CI 성공만으로 운영 배포 완료라고 기록하지 않습니다.
 

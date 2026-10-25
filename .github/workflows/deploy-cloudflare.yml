@@ -49,20 +49,17 @@ jobs:
       - name: Validate Worker bundle without uploading
         working-directory: apps/admin
         run: npx --no-install wrangler deploy --dry-run
-      - name: Skip an outdated main commit
+      - name: Skip outdated target files, allow newer documentation-only commits
         id: revision
         shell: bash
         run: |
-          remote_head="$(git ls-remote origin refs/heads/main | cut -f1)"
-          if [ -z "$remote_head" ]; then
-            echo 'Could not read current main commit.' >&2
-            exit 1
-          fi
-          if [ "$remote_head" = "$GITHUB_SHA" ]; then
-            echo 'current=true' >> "$GITHUB_OUTPUT"
-          else
+          git fetch --no-tags --depth=1 origin main
+          git diff --name-only "$GITHUB_SHA" FETCH_HEAD -- apps/admin packages/staff-ui package.json package-lock.json scripts/check-static-deploy-env.mjs .github/workflows/deploy-cloudflare.yml > "$RUNNER_TEMP/static-release-changes.txt"
+          if [ -s "$RUNNER_TEMP/static-release-changes.txt" ]; then
             echo 'current=false' >> "$GITHUB_OUTPUT"
-            echo 'Newer main commit exists; skipped this outdated deployment.' >> "$GITHUB_STEP_SUMMARY"
+            echo 'Newer target files exist on main; skipped this outdated deployment.' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'current=true' >> "$GITHUB_OUTPUT"
           fi
       - name: Deploy Worker static assets
         if: steps.revision.outputs.current == 'true'
