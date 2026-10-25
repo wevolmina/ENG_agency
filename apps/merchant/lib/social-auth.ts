@@ -24,7 +24,7 @@ function secureOrigin(value: string | undefined, env: SocialEnv) {
   } catch { return null; }
 }
 export function socialOrigins(env: SocialEnv) {
-  return new Set([...defaults, secureOrigin(env.ADMIN_SITE_ORIGIN, env),
+  return new Set([...defaults, apiOrigin(env), secureOrigin(env.ADMIN_SITE_ORIGIN, env),
     ...(env.NODE_ENV === "development" ? [secureOrigin(env.SOCIAL_CUSTOMER_DEV_ORIGIN, env)] : []),
   ].filter((s): s is string => !!s));
 }
@@ -54,12 +54,16 @@ function baseHeaders() {
     "X-Content-Type-Options": "nosniff", "X-Frame-Options": "DENY"};
 }
 export function socialConfigResponse(request: Request, env: SocialEnv) {
-  const origin = request.headers.get("origin");
+  // Browsers omit Origin on same-origin GETs from the merchant site.
+  // Only the configured canonical server may use this path; cross-site/no-metadata requests still fail closed.
+  const origin = request.headers.get("origin") ||
+    (request.headers.get("sec-fetch-site") === "same-origin" && new URL(request.url).origin === apiOrigin(env)
+      ? new URL(request.url).origin : null);
   if (!origin || !socialOrigins(env).has(origin)) {
     return Response.json({error: "ORIGIN_NOT_ALLOWED"}, {status: 403, headers: baseHeaders()});
   }
   return Response.json(socialConfiguration(env), {headers: {
-    ...baseHeaders(), "Access-Control-Allow-Origin": origin, Vary: "Origin",
+    ...baseHeaders(), "Access-Control-Allow-Origin": origin, Vary: "Origin, Sec-Fetch-Site",
   }});
 }
 function cookieName(provider: SocialProvider, env: SocialEnv) {

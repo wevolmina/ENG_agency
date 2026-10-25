@@ -1,0 +1,37 @@
+{
+  "dateKST": "2026-10-25",
+  "unitTests": {
+    "passed": 44,
+    "runtime": "Node.js 22"
+  },
+  "builds": [
+    "customer",
+    "merchant",
+    "admin"
+  ],
+  "browser": {
+    "method": "Local apps with intercepted provider/Auth/business data; no production writes",
+    "customerLoginLogoutAndConsent": true,
+    "wrongNonceIgnored": true,
+    "checkoutLockedDuringLogin": true,
+    "adminSocialLoginStillDeniedWithoutMembership": true,
+    "emailFallbackAfterLogout": true,
+    "sellerSocialLoginDeniedWithoutMembership": true,
+    "sellerSocialLoginWithMembership": true,
+    "sellerEmailFallbackAndLayout": true,
+    "anonymousOrderHistoryProtected": true,
+    "unconfiguredProvidersDisabled": true,
+    "blockedPopupRecovery": true,
+    "pageErrors": [],
+    "widths": [
+      320,
+      390,
+      768,
+      1440
+    ]
+  },
+  "realProviderAccountSignInTested": false,
+  "productionRoleChanges": false,
+  "productionOrderWrites": false,
+  "deploymentStatus": "pending"
+}

@@ -369,11 +369,11 @@ export default function StaffDashboard({
             <section className="login card">
               <p className="eyebrow">AUTHORIZED STAFF ONLY</p>
               <h2>{title} 로그인</h2>
-              <p>{admin ? "간편로그인 또는 기존 이메일 계정을 사용하세요. 서버에서 관리자 역할을 확인합니다." : "기존 이메일 계정을 사용합니다. 서버에서 역할을 확인합니다."}</p>
-              {admin && <><SocialLogin auth={configured ? clientAuth() : null} apiOrigin={apiOrigin || "https://paybridge-mock.vercel.app"}
+              <p>간편로그인 또는 기존 이메일 계정을 사용하세요. 서버에서 {admin ? "관리자" : "판매자"} 역할을 확인합니다.</p>
+              <SocialLogin auth={configured ? clientAuth() : null} apiOrigin={apiOrigin || "https://paybridge-mock.vercel.app"}
                 disabled={busy} onBusyChange={setSocialBusy}/>
                 <p className="social-divider">또는 이메일로 로그인</p>
-                <p className="social-help">간편로그인만으로 관리자 권한이 생기지 않습니다. 등록된 관리자 계정만 자료를 볼 수 있습니다.</p></>}
+                <p className="social-help">간편로그인만으로 {admin ? "관리자" : "판매자"} 권한이 생기지 않습니다. 등록된 {admin ? "관리자" : "판매자"} 계정만 자료를 볼 수 있습니다.</p>
               <form onSubmit={login}>
                 <label>
                   이메일
