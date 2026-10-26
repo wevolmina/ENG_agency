@@ -34,6 +34,7 @@ test("PostgreSQL: concurrent orders, rollback, privacy, catalogue and staff appr
    {MASTER_SETUP_EMAIL:master.email!,MASTER_SETUP_MERCHANT_ID:"studio-mina",MASTER_SETUP_PASSWORD:"fixture-only-password"},now);
   const applicant={...master,uid:"applicant",email:"applicant@example.invalid"};
   const application=await applyForAccess(pool,applicant,"merchant",{email:applicant.email});
+  assert.equal((await applyForAccess(pool,applicant,"merchant",{email:applicant.email})).requestId,application.requestId);
   await reviewApplication(pool,master,{requestId:application.requestId,decision:"approved",reason:"fixture"},now);
   assert.equal((await ownApplications(pool,applicant)).memberships[0].active,true);
   await setPackageActive(pool,"master","studio-mina","desk-focus",false,1);

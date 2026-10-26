@@ -21,7 +21,7 @@ function database(){
   if(sql.startsWith("INSERT INTO staff_access_request_reviews")){if(failAudit)throw Error("fixture audit failure");state.reviews.push(args);return [[],[]];}
   if(sql.startsWith("SELECT request_id,")){
    let rows=state.applications;
-   if(sql.includes("WHERE BINARY user_uid"))rows=rows.filter(r=>r.user_uid===args[0]&&r.merchant_id===args[1]&&(!sql.includes("AND role=?")||r.role===args[2]));
+   if(sql.includes("WHERE user_uid"))rows=rows.filter(r=>r.user_uid===args[0]&&r.merchant_id===args[1]&&(!sql.includes("AND role=?")||r.role===args[2]));
    else if(sql.includes("WHERE request_id=?"))rows=rows.filter(r=>r.request_id===args[0]&&r.merchant_id===args[1]);
    else rows=rows.filter(r=>r.merchant_id===args[0]&&r.status==="pending");
    return [structuredClone(rows.slice(0,101)),[]];

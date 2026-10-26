@@ -16,7 +16,7 @@ jobs:
           POSTGRES_DB: eng_agency_test
         ports: ['5432:5432']
         options: >-
-          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       DATABASE_URL: postgresql://postgres:fixture-only@localhost:5432/eng_agency_test
       RUN_POSTGRES_TESTS: 'true'
@@ -49,3 +49,11 @@ jobs:
       - run: npm run db:migrate
       - run: npm run test:postgres
       - run: npm run build
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Verify server-only Firestore intake
+        run: npx --yes firebase-tools@15.34.1 emulators:exec --only firestore --project demo-eng-agency "node --import tsx --test tests/firestore/*.test.ts"
+        env:
+          FIREBASE_PROJECT_ID: demo-eng-agency

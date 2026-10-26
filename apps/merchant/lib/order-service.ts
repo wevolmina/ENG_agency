@@ -43,8 +43,9 @@ export function orderService(store:IntakeStore,confirm:(task:OrderTask)=>Promise
   reconcile:async(limit=25)=>{
    const tasks=await store.due(Math.min(25,Math.max(1,limit)));
    let completed=0,pending=0,blocked=0;
-   for(const task of tasks){const result=await process(task);if(result.status===200)completed++;else if(result.status===409)blocked++;else pending++;}
-   return {checked:tasks.length,completed,pending,blocked};
+   const deadline=Date.now()+40000;
+   for(const task of tasks){if(Date.now()>=deadline)break;const result=await process(task);if(result.status===200)completed++;else if(result.status===409)blocked++;else pending++;}
+   return {checked:completed+pending+blocked,completed,pending,blocked};
   }
  };
 }
