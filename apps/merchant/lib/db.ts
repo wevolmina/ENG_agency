@@ -27,7 +27,8 @@ export function getPool():Pool {
  if(!local&&url.searchParams.get("sslmode")==="disable")throw Error("DB_TLS_REQUIRED");
  for(const key of ["sslmode","sslcert","sslkey","sslrootcert"])url.searchParams.delete(key);
  const native=new pg.Pool({connectionString:url.toString(),ssl:local?undefined:{rejectUnauthorized:true},
-  max:3,idleTimeoutMillis:10000,connectionTimeoutMillis:10000,options:"-c timezone=UTC -c statement_timeout=10000"});
+  max:3,idleTimeoutMillis:10000,connectionTimeoutMillis:10000,query_timeout:10000});
+ native.on("error",()=>console.error("postgres_idle_connection_error"));
  attachDatabasePool(native);
  const execute=(client:pg.Pool|pg.PoolClient)=>async<T=RowDataPacket[]>(sql:string,args:readonly unknown[]=[])=>{
   const result=await client.query(parameters(sql),[...args]);
@@ -35,7 +36,7 @@ export function getPool():Pool {
  };
  pool={execute:execute(native),end:()=>native.end(),getConnection:async()=>{
   const client=await native.connect();
-  return {execute:execute(client),beginTransaction:async()=>{await client.query("BEGIN")},
+  return {execute:execute(client),beginTransaction:async()=>{await client.query("BEGIN; SET LOCAL TIME ZONE 'UTC'; SET LOCAL statement_timeout = '10s'")},
    commit:async()=>{await client.query("COMMIT")},rollback:async()=>{await client.query("ROLLBACK")},release:()=>client.release()};
  }};
  return pool;
