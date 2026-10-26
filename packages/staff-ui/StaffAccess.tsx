@@ -1,13 +1,13 @@
 "use client";
 import {useEffect,useRef,useState} from "react";
 import type {Auth,User} from "firebase/auth";
+import StaffRequests from "./StaffRequests";
 import {PrivateInput,PrivateValue} from "./PrivateFields";
 import "./staff-access.css";
 type Role="merchant"|"admin";
 type Member={user_uid:string;role:Role;active:boolean|number;email?:string|null;emailStatus?:string};
-type Status={isMaster:boolean;canSetup:boolean;needsRecentLogin:boolean;masterUid?:string;merchantId?:string;members?:Member[];
+type Status={isMaster:boolean;canSetup:boolean;needsRecentLogin:boolean;masterUid?:string;merchantId?:string;members?:Member[];requests?:{request_id:string;role:Role;email:string|null;display_name:string|null;created_at:string}[];hasMoreRequests?:boolean;requestHistory?:{id:number;user_uid:string;role:Role;decision:"approved"|"rejected";reason:string;created_at:string}[];
   history?:{id:number;target_uid:string;role:Role;before_active:boolean|number|null;after_active:boolean|number;created_at:string}[]};
-type Account={uid:string;email:string|null;displayName:string|null;providers:string[];memberships:{role:Role;active:boolean;otherStore:boolean}[]};
 const roleName=(role:Role)=>role==="admin"?"관리자":"판매자";
 const accessDate=(value:string)=>new Date(value.includes("T")?value:value.replace(" ","T")+"Z").toLocaleString("ko-KR",{timeZone:"Asia/Seoul"});
 const messages:Record<string,string>={
@@ -20,14 +20,14 @@ const messages:Record<string,string>={
  ACCOUNT_NOT_FOUND:"계정을 찾을 수 없습니다. 해당 계정으로 먼저 로그인한 뒤 고유번호를 확인해 주세요.",
  ACCOUNT_DISABLED:"사용 중지된 계정은 승인할 수 없습니다.",ACCOUNT_LOGIN_REQUIRED:"비회원 계정은 승인할 수 없습니다. 구글·카카오·네이버 또는 이메일로 먼저 로그인해 주세요.",
  MASTER_ADMIN_PROTECTED:"마스터 계정의 관리자 권한은 이 화면에서 해제할 수 없습니다.",
- ACCESS_VERSION_CONFLICT:"다른 변경이 먼저 반영되었습니다. 계정 정보를 다시 확인해 주세요.",INVALID_INPUT:"입력한 계정 고유번호와 선택 항목을 확인해 주세요.",
+ APPLICATION_ALREADY_REVIEWED:"이미 처리된 신청입니다. 목록을 다시 확인해 주세요.",APPLICATION_NOT_FOUND:"신청이 갱신되거나 삭제되었습니다. 목록을 다시 확인해 주세요.",ACCESS_VERSION_CONFLICT:"다른 변경이 먼저 반영되었습니다. 계정 정보를 다시 확인해 주세요.",INVALID_INPUT:"입력한 계정 고유번호와 선택 항목을 확인해 주세요.",
 };
 type Props={auth:Auth;user:User;apiOrigin:string;disabled?:boolean;onChanged:()=>void;onBusyChange:(busy:boolean)=>void;onManagementChange?:(allowed:boolean)=>void};
 export default function StaffAccess({auth,user,apiOrigin,disabled=false,onChanged,onBusyChange,onManagementChange}:Props){
  const [status,setStatus]=useState<Status|null>(null),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false);
  const [error,setError]=useState(""),[notice,setNotice]=useState(""),[password,setPassword]=useState("");
- const [includeMerchant,setIncludeMerchant]=useState(false),[target,setTarget]=useState(""),[account,setAccount]=useState<Account|null>(null);
- const [role,setRole]=useState<Role>("merchant"),[confirmed,setConfirmed]=useState(false),[revoke,setRevoke]=useState<Member|null>(null);
+ const [includeMerchant,setIncludeMerchant]=useState(false),[revoke,setRevoke]=useState<Member|null>(null);
+ const [reasons,setReasons]=useState<Record<string,string>>({});
  const live=useRef(false),working=useRef(false),generation=useRef(0),callbacks=useRef({onChanged,onBusyChange,onManagementChange});
  const controllers=useRef(new Set<AbortController>());
  callbacks.current={onChanged,onBusyChange,onManagementChange};
@@ -52,7 +52,7 @@ export default function StaffAccess({auth,user,apiOrigin,disabled=false,onChange
  async function refresh(){const result:Status=await request();setStatus(result);callbacks.current.onManagementChange?.(result.isMaster||result.canSetup)}
  useEffect(()=>{
   live.current=true;generation.current++;const seq=generation.current;
-  setStatus(null);callbacks.current.onManagementChange?.(false);setPassword("");setAccount(null);setTarget("");setError("");setNotice("");setLoading(true);setBusy(false);
+  setStatus(null);callbacks.current.onManagementChange?.(false);setPassword("");setRevoke(null);setReasons({});setError("");setNotice("");setLoading(true);setBusy(false);
   void refresh().catch(e=>{if(live.current&&seq===generation.current&&e.message!=="STALE_ACCOUNT")setError(messages[e.message]||"계정 승인 정보를 확인하지 못했습니다. 다시 확인해 주세요.")})
    .finally(()=>{if(live.current&&seq===generation.current)setLoading(false)});
   return()=>{live.current=false;generation.current++;for(const c of controllers.current)c.abort();callbacks.current.onBusyChange(false)};
@@ -64,11 +64,11 @@ export default function StaffAccess({auth,user,apiOrigin,disabled=false,onChange
   finally{working.current=false;if(live.current){setBusy(false);callbacks.current.onBusyChange(false)}}
  }
  const locked=busy||disabled;
- const member=account?.memberships.find(m=>m.role===role);
  const groupedMembers = Array.from((status?.members || []).reduce((groups, member) => {
   const group = groups.get(member.user_uid) || {uid:member.user_uid,email:member.email,emailStatus:member.emailStatus,roles:[] as Member[]};
   group.roles.push(member); groups.set(member.user_uid,group); return groups;
  },new Map<string,{uid:string;email?:string|null;emailStatus?:string;roles:Member[]}>()).values());
+ if(status&&!status.canSetup&&!status.isMaster)return <StaffRequests auth={auth} user={user} apiOrigin={apiOrigin} defaultRole="admin" onChanged={onChanged} onBusyChange={onBusyChange}/>;
  return <section className="staff-access card" aria-labelledby="staff-access-heading">
   <div className="staff-access-heading"><div><p className="eyebrow">ACCOUNT ACCESS</p><h2 id="staff-access-heading">{status?.isMaster||status?.canSetup?"계정 승인":"이용 권한 안내"}</h2></div>
    <button type="button" disabled={locked||loading} onClick={()=>void run(async()=>{await refresh();setNotice("등록 상태를 확인했습니다.")})}>등록 상태 확인</button></div>
@@ -84,28 +84,21 @@ export default function StaffAccess({auth,user,apiOrigin,disabled=false,onChange
    <label className="access-check"><input type="checkbox" checked={includeMerchant} disabled={locked} onChange={e=>setIncludeMerchant(e.target.checked)}/>이 계정으로 판매자 사이트도 이용</label>
    <button className="primary" disabled={locked||status.needsRecentLogin||!password}>마스터 등록</button>
   </form>}
-  {status&&!status.canSetup&&!status.isMaster&&<p>이 계정에는 다른 계정을 승인하는 기능이 없습니다. 판매자 또는 관리자 권한이 필요하면 위의 내 계정 고유번호를 마스터에게 전달하세요. 마스터가 승인한 뒤 해당 사이트에서 다시 로그인하면 됩니다.</p>}
   {status?.isMaster&&<>
-   <p>마스터 계정으로 로그인했습니다. 계정을 확인한 뒤 필요한 역할을 승인하세요.</p>
-   <form className="access-form" onSubmit={e=>{e.preventDefault();void run(async()=>{
-    setAccount(null);setConfirmed(false);const result=await request({action:"lookup",uid:target.trim()});setAccount(result.account);
-   })}}>
-    <PrivateInput label="승인할 계정 고유번호(UID)" value={target} maxLength={128} required autoComplete="off" disabled={locked||status.needsRecentLogin} onChange={e=>{setTarget(e.target.value);setAccount(null);setConfirmed(false)}}/>
-    <button type="submit" disabled={locked||status.needsRecentLogin||!target.trim()}>계정 확인</button>
-   </form>
-   {account&&<div className="access-review">
-    <h3>승인할 계정 확인</h3>
-    <dl><dt>계정 고유번호</dt><dd><PrivateValue key={account.uid+":uid"} value={account.uid} label="승인할 계정 고유번호"/></dd><dt>이메일</dt><dd><PrivateValue key={account.uid+":email"} value={account.email} label="승인할 계정 이메일"/></dd>
-     <dt>이름</dt><dd>{account.displayName||"제공되지 않음"}</dd></dl>
-    <label>승인할 역할<select aria-label="승인할 역할" value={role} disabled={locked} onChange={e=>{setRole(e.target.value as Role);setConfirmed(false)}}><option value="merchant">판매자</option><option value="admin">관리자</option></select></label>
-    {member?.otherStore?<p className="notice">{messages.ACCOUNT_OTHER_STORE}</p>:member?.active?<p>이 역할은 이미 승인되어 있습니다.</p>:<>
-     <label className="access-check"><input type="checkbox" checked={confirmed} disabled={locked} onChange={e=>setConfirmed(e.target.checked)}/>이 계정의 소유자를 확인했으며 {roleName(role)} 권한 부여에 동의합니다.</label>
-     <button className="primary" type="button" disabled={locked||status.needsRecentLogin||!confirmed} onClick={()=>void run(async()=>{
-      await request({action:"set",uid:account.uid,role,active:true,expectedActive:member?member.active:null});
-      setAccount(null);setTarget("");setConfirmed(false);await refresh();setNotice(roleName(role)+" 권한을 승인했습니다.");callbacks.current.onChanged();
-     })}>{roleName(role)}로 승인</button>
-    </>}
-   </div>}
+   <p>신청한 계정과 역할을 확인한 뒤 수락하거나 거절하세요. 수락한 역할만 사용할 수 있습니다.</p>
+   <h3>권한 신청 <small>{status.requests?.length||0}건 대기</small></h3>
+   {status.hasMoreRequests&&<p>먼저 접수된 신청 100건을 표시합니다. 처리한 뒤 등록 상태를 확인하면 다음 신청이 보입니다.</p>}
+   <ul className="access-applications">{status.requests?.length?status.requests.map((application,index)=><li key={application.request_id}>
+    <div><strong>{application.display_name||"신청 계정 "+(index+1)}</strong><span className="access-request-role">{roleName(application.role)} 신청</span></div>
+    <PrivateValue value={application.email} label={"신청 "+(index+1)+" 이메일"}/>
+    <small>{accessDate(application.created_at)} (한국 시간)</small>
+    <label>거절 사유 (선택)<input maxLength={300} value={reasons[application.request_id]||""} disabled={locked} onChange={e=>setReasons(v=>({...v,[application.request_id]:e.target.value}))}/></label>
+    <div className="access-request-actions">{(["approved","rejected"] as const).map(decision=><button key={decision} type="button" className={decision==="approved"?"primary":undefined}
+     disabled={locked||status.needsRecentLogin} aria-label={"신청 "+(index+1)+" "+roleName(application.role)+(decision==="approved"?" 수락":" 거절")} onClick={()=>void run(async()=>{
+      await request({action:"review",requestId:application.request_id,decision,reason:decision==="rejected"?reasons[application.request_id]||"":""});
+      await refresh();setReasons(v=>{const next={...v};delete next[application.request_id];return next});setNotice(roleName(application.role)+" 신청을 "+(decision==="approved"?"수락했습니다.":"거절했습니다."));callbacks.current.onChanged();
+     })}>{decision==="approved"?"수락":"거절"}</button>)}</div>
+   </li>):<li>대기 중인 신청이 없습니다.</li>}</ul>
    <div className="access-list-heading"><h3>등록된 계정 <small>{groupedMembers.length}개</small></h3><p>계정별로 판매자·관리자 권한을 함께 확인하세요. 최대 100개 권한 기준입니다.</p></div>
    <ul className="access-members">{groupedMembers.map((group,index)=><li key={group.uid}>
     <div className="access-account-heading"><strong>등록 계정 {String(index+1).padStart(2,"0")}</strong>{group.uid===status.masterUid&&<span className="access-master-badge">마스터 계정</span>}</div>
@@ -123,9 +116,12 @@ export default function StaffAccess({auth,user,apiOrigin,disabled=false,onChange
     <PrivateValue value={revoke.user_uid} label="해제할 계정 고유번호"/>
     <button type="button" disabled={locked||status.needsRecentLogin} onClick={()=>void run(async()=>{
      await request({action:"set",uid:revoke.user_uid,role:revoke.role,active:false,expectedActive:!!revoke.active});
-     setRevoke(null);setAccount(null);await refresh();setNotice("권한을 해제했습니다.");callbacks.current.onChanged();
+     setRevoke(null);await refresh();setNotice("권한을 해제했습니다.");callbacks.current.onChanged();
     })}>해제 확인</button><button type="button" disabled={locked} onClick={()=>setRevoke(null)}>취소</button>
    </div>}
+   <h3>최근 신청 처리 이력</h3><ul className="access-history">{status.requestHistory?.length?status.requestHistory.map(h=><li key={h.id}>
+    <PrivateValue value={h.user_uid} label={"신청 처리 이력 "+h.id+" 계정 고유번호"}/><b>{roleName(h.role)} · {h.decision==="approved"?"수락":"거절"}</b>{h.reason&&<span>사유: {h.reason}</span>}<small>{accessDate(h.created_at)} (한국 시간)</small>
+   </li>):<li>아직 처리한 신청이 없습니다.</li>}</ul>
    <h3>최근 승인·해제 이력</h3><ul className="access-history">{status.history?.length?status.history.map(h=><li key={h.id}>
     <PrivateValue value={h.target_uid} label={`변경 이력 ${h.id} 계정 고유번호`}/><b>{roleName(h.role)} · {h.after_active?"승인":"해제"}</b><small>{accessDate(h.created_at)} (한국 시간)</small>
    </li>):<li>아직 변경 이력이 없습니다.</li>}</ul>

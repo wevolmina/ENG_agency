@@ -10,6 +10,7 @@ import {
 } from "firebase/auth";
 import SocialLogin from "./SocialLogin";
 import StaffAccess from "./StaffAccess";
+import StaffRequests from "./StaffRequests";
 import {PrivateInput,PrivateValue} from "./PrivateFields";
 import "./social-login.css";
 import "./workspace.css";
@@ -183,8 +184,8 @@ export default function StaffDashboard({
           setData(null);
           setError(
             admin
-              ? "관리자 권한이 없습니다. 내 계정에서 고유번호를 확인해 마스터에게 승인을 요청하세요."
-              : "판매자 권한이 없습니다. 내 계정에서 고유번호를 확인해 마스터에게 승인을 요청하세요.",
+              ? "관리자 권한이 없습니다. 내 계정에서 이용 권한을 신청하세요."
+              : "판매자 권한이 없습니다. 내 계정에서 이용 권한을 신청하세요.",
           );
           return;
         }
@@ -423,7 +424,7 @@ export default function StaffDashboard({
                 <PrivateValue key={user.uid} value={user.uid} label="내 계정 고유번호"/>
               </div>
               <div hidden={view!=="accounts"}>{admin ? <StaffAccess auth={clientAuth()} user={user} apiOrigin={apiOrigin}
-                disabled={busy} onBusyChange={setAccessBusy} onManagementChange={setCanManageAccounts} onChanged={()=>setRevision(v=>v+1)}/> : <section className="card account-help"><h2>판매자 이용 권한</h2><p>권한이 필요하면 위 계정 고유번호를 확인해 마스터에게 전달하세요.</p><p>이메일과 고유번호는 눈 버튼으로 확인할 수 있습니다.</p></section>}</div>
+                disabled={busy} onBusyChange={setAccessBusy} onManagementChange={setCanManageAccounts} onChanged={()=>setRevision(v=>v+1)}/> : <StaffRequests auth={clientAuth()} user={user} apiOrigin={apiOrigin} defaultRole="merchant" onChanged={()=>setRevision(v=>v+1)} onBusyChange={setAccessBusy}/>}</div>
               <div className="status-line" hidden={view==="accounts"}>
                 <span>
                   {data ? "마지막으로 확인한 모의 거래" : "권한·DB 확인 중"}

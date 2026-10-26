@@ -1,4 +1,4 @@
-import {createHash, timingSafeEqual} from "node:crypto";
+import {createHash, randomUUID, timingSafeEqual} from "node:crypto";
 import type {Pool, PoolConnection, RowDataPacket} from "mysql2/promise";
 import {z} from "zod";
 
@@ -19,6 +19,7 @@ export const accessInput = z.discriminatedUnion("action", [
   z.object({action:z.literal("lookup"),uid}).strict(),
   z.object({action:z.literal("set"),uid,role:z.enum(["merchant","admin"]),active:z.boolean(),expectedActive:z.boolean().nullable()}).strict(),
 ]);
+export const reviewInput=z.object({action:z.literal("review"),requestId:z.string().uuid(),decision:z.enum(["approved","rejected"]),reason:z.string().trim().max(300).default("")}).strict();
 export const accessSchema = [
   `CREATE TABLE IF NOT EXISTS staff_master_setup (
     id TINYINT PRIMARY KEY,
@@ -162,4 +163,105 @@ export async function setAccess(pool: Pool, user: AccessIdentity,
     await audit(c,user.uid,input.uid,master.merchantId,input.role,before,input.active);
     await c.commit(); return {ok:true};
   } catch(e) {await c.rollback(); throw e;} finally {c.release()}
+}
+
+export const applicationInput=z.object({role:z.enum(["merchant","admin"])}).strict();
+export type AccessApplication={request_id:string;user_uid:string;merchant_id:string;role:Role;
+  email:string|null;display_name:string|null;status:"pending"|"approved"|"rejected";
+  reason:string;created_at:string;reviewed_at:string|null};
+export const applicationSchema=`CREATE TABLE IF NOT EXISTS staff_access_requests (
+  request_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin PRIMARY KEY,
+  user_uid VARCHAR(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  merchant_id VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  role ENUM('merchant','admin') NOT NULL,
+  email VARCHAR(320) NULL, display_name VARCHAR(200) NULL,
+  status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+  reason VARCHAR(300) NOT NULL DEFAULT '',
+  reviewed_by VARCHAR(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL,
+  created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3), reviewed_at TIMESTAMP(3) NULL,
+  UNIQUE KEY request_account_role (user_uid,merchant_id,role),
+  KEY request_queue (merchant_id,status,created_at)
+) ENGINE=InnoDB`;
+export const applicationReviewSchema=`CREATE TABLE IF NOT EXISTS staff_access_request_reviews (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  request_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  user_uid VARCHAR(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  actor_uid VARCHAR(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  merchant_id VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  role ENUM('merchant','admin') NOT NULL, decision ENUM('approved','rejected') NOT NULL,
+  reason VARCHAR(300) NOT NULL DEFAULT '',
+  created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  KEY request_review_history (merchant_id,id)
+) ENGINE=InnoDB`;
+const applicationColumns="request_id,user_uid,merchant_id,role,email,display_name,status,reason,created_at,reviewed_at";
+async function applicationRows(db:Sql,where:string,args:string[]) {
+  try {const [rows]=await db.execute<RowDataPacket[]>(`SELECT ${applicationColumns} FROM staff_access_requests ${where}`,args);
+    return rows as AccessApplication[];
+  } catch(e) {if((e as {code?:string}).code==="ER_NO_SUCH_TABLE")return [];throw e;}
+}
+export async function ownApplications(pool:Pool,user:AccessIdentity) {
+  const master=await masterRecord(pool);
+  if(!master?.user_uid||!master.merchant_id)return {ready:false,requests:[],memberships:[]};
+  return {ready:true,requests:await applicationRows(pool,"WHERE BINARY user_uid=BINARY ? AND merchant_id=? ORDER BY created_at DESC",[user.uid,master.merchant_id]),
+    memberships:await targetMemberships(pool,{merchantId:master.merchant_id},user.uid)};
+}
+export async function pendingApplications(pool:Pool,user:AccessIdentity) {
+  const master=await requireMaster(pool,user);
+  const rows=await applicationRows(pool,"WHERE merchant_id=? AND status='pending' ORDER BY created_at,request_id LIMIT 101",[master.merchantId]);
+  let requestHistory:RowDataPacket[]=[];
+  try { [requestHistory]=await pool.execute<RowDataPacket[]>("SELECT id,user_uid,role,decision,reason,created_at FROM staff_access_request_reviews WHERE merchant_id=? ORDER BY id DESC LIMIT 20",[master.merchantId]); }
+  catch(e){if((e as {code?:string}).code!=="ER_NO_SUCH_TABLE")throw e;}
+  return {requests:rows.slice(0,100),hasMoreRequests:rows.length>100,requestHistory};
+}
+export async function applyForAccess(pool:Pool,user:AccessIdentity,role:Role,profile:{email?:string;displayName?:string}) {
+  const configured=await masterRecord(pool);
+  if(!configured?.user_uid||!configured.merchant_id)throw new AccessError("APPLICATIONS_NOT_READY",503);
+  // Only authenticated submissions prepare this additive table. Reads never write schema.
+  await pool.execute(applicationSchema);
+  await pool.execute(applicationReviewSchema);
+  const c=await pool.getConnection();
+  try {
+    await c.beginTransaction();
+    // The installation lock also serializes existing manual role changes and reviews.
+    const master=await masterRecord(c,true);
+    if(!master?.user_uid||!master.merchant_id)throw new AccessError("APPLICATIONS_NOT_READY",503);
+    const member=await membership(c,user.uid,role,true);
+    if(member&&member.merchant_id!==master.merchant_id)throw new AccessError("ACCOUNT_OTHER_STORE",409);
+    if(member?.active)throw new AccessError("ROLE_ALREADY_ACTIVE",409);
+    const existing=(await applicationRows(c,"WHERE BINARY user_uid=BINARY ? AND merchant_id=? AND role=? FOR UPDATE",[user.uid,master.merchant_id,role]))[0];
+    if(existing?.status==="pending"){await c.commit();return {ok:true,requestId:existing.request_id};}
+    const requestId=randomUUID();
+    const args=[requestId,profile.email?.slice(0,320)||null,profile.displayName?.slice(0,200)||null];
+    if(existing)await c.execute("UPDATE staff_access_requests SET request_id=?,email=?,display_name=?,status='pending',reason='',reviewed_by=NULL,reviewed_at=NULL,created_at=CURRENT_TIMESTAMP(3) WHERE request_id=?",[...args,existing.request_id]);
+    else await c.execute("INSERT INTO staff_access_requests (request_id,email,display_name,user_uid,merchant_id,role) VALUES (?,?,?,?,?,?)",[...args,user.uid,master.merchant_id,role]);
+    await c.commit();return {ok:true,requestId};
+  }catch(e){await c.rollback();throw e;}finally{c.release();}
+}
+export async function applicationForReview(pool:Pool,user:AccessIdentity,requestId:string) {
+  const master=await requireMaster(pool,user);
+  const application=(await applicationRows(pool,"WHERE request_id=? AND merchant_id=?",[requestId,master.merchantId]))[0];
+  if(!application)throw new AccessError("APPLICATION_NOT_FOUND",404);
+  return application;
+}
+export async function reviewApplication(pool:Pool,user:AccessIdentity,input:{requestId:string;decision:"approved"|"rejected";reason:string},now=Date.now()) {
+  if(!recentGoogle(user,now))throw new AccessError("RECENT_LOGIN_REQUIRED");
+  const c=await pool.getConnection();
+  try {
+    await c.beginTransaction();const master=await requireMaster(c,user,true);
+    const application=(await applicationRows(c,"WHERE request_id=? AND merchant_id=? FOR UPDATE",[input.requestId,master.merchantId]))[0];
+    if(!application)throw new AccessError("APPLICATION_NOT_FOUND",404);
+    if(application.status!=="pending")throw new AccessError("APPLICATION_ALREADY_REVIEWED",409);
+    if(input.decision==="approved") {
+      const member=await membership(c,application.user_uid,application.role,true);
+      if(member&&member.merchant_id!==master.merchantId)throw new AccessError("ACCOUNT_OTHER_STORE",409);
+      if(!member?.active) {
+        if(member)await c.execute("UPDATE staff_memberships SET active=? WHERE BINARY user_uid=BINARY ? AND role=? AND merchant_id=?",[true,application.user_uid,application.role,master.merchantId]);
+        else await c.execute("INSERT INTO staff_memberships (user_uid,merchant_id,role,active) VALUES (?,?,?,?)",[application.user_uid,master.merchantId,application.role,true]);
+      }
+      await audit(c,user.uid,application.user_uid,master.merchantId,application.role,member?!!member.active:null,true);
+    }
+    await c.execute("INSERT INTO staff_access_request_reviews (request_id,user_uid,actor_uid,merchant_id,role,decision,reason) VALUES (?,?,?,?,?,?,?)",[input.requestId,application.user_uid,user.uid,master.merchantId,application.role,input.decision,input.reason]);
+    await c.execute("UPDATE staff_access_requests SET status=?,reason=?,reviewed_by=?,reviewed_at=CURRENT_TIMESTAMP(3) WHERE request_id=?",[input.decision,input.reason,user.uid,input.requestId]);
+    await c.commit();return {ok:true};
+  }catch(e){await c.rollback();throw e;}finally{c.release();}
 }

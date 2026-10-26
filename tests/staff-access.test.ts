@@ -2,20 +2,39 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import type {Pool} from "mysql2/promise";
 import {AccessError,accessInput,accessStatus,bootstrapMaster,recentGoogle,requireMaster,setAccess,
-  type AccessIdentity} from "../apps/merchant/lib/staff-access";
+  applyForAccess,ownApplications,pendingApplications,reviewApplication,type AccessApplication,type AccessIdentity} from "../apps/merchant/lib/staff-access";
 import {createAccessHandlers} from "../apps/merchant/lib/staff-access-http";
+import {createRequestHandlers} from "../apps/merchant/lib/staff-requests-http";
 const now=1800000000000;
 const owner:AccessIdentity={uid:"owner-fixture",email:"owner@example.invalid",emailVerified:true,claims:{
  email:"owner@example.invalid",email_verified:true,auth_time:now/1000,firebase:{sign_in_provider:"google.com"}}};
 const env={MASTER_SETUP_EMAIL:owner.email!,MASTER_SETUP_MERCHANT_ID:"fixture-shop",MASTER_SETUP_PASSWORD:"fixture-password-only"};
 const password=env.MASTER_SETUP_PASSWORD;
 type State={tables:boolean;master:null|{user_uid:string|null;merchant_id:string|null;failed_attempts:number;locked_until_ms:number};
- members:Record<string,{merchant_id:string;active:boolean}>;audit:unknown[][]};
+ members:Record<string,{merchant_id:string;active:boolean}>;audit:unknown[][];applications:AccessApplication[];reviews:unknown[][]};
 function database(){
- let state:State={tables:false,master:null,members:{},audit:[]};const events:string[]=[];
+ let state:State={tables:false,master:null,members:{},audit:[],applications:[],reviews:[]};const events:string[]=[];let failAudit=false;
  async function execute(sql:string,args:unknown[]=[]):Promise<unknown>{
   events.push(sql);
   if(sql.startsWith("CREATE TABLE")){state.tables=true;return [[],[]]}
+  if(sql.startsWith("SELECT id,user_uid,role,decision"))return [[],[]];
+  if(sql.startsWith("INSERT INTO staff_access_request_reviews")){if(failAudit)throw Error("fixture audit failure");state.reviews.push(args);return [[],[]];}
+  if(sql.startsWith("SELECT request_id,")){
+   let rows=state.applications;
+   if(sql.includes("WHERE BINARY user_uid"))rows=rows.filter(r=>r.user_uid===args[0]&&r.merchant_id===args[1]&&(!sql.includes("AND role=?")||r.role===args[2]));
+   else if(sql.includes("WHERE request_id=?"))rows=rows.filter(r=>r.request_id===args[0]&&r.merchant_id===args[1]);
+   else rows=rows.filter(r=>r.merchant_id===args[0]&&r.status==="pending");
+   return [structuredClone(rows.slice(0,101)),[]];
+  }
+  if(sql.startsWith("INSERT INTO staff_access_requests")){
+   state.applications.push({request_id:String(args[0]),email:args[1] as string|null,display_name:args[2] as string|null,user_uid:String(args[3]),merchant_id:String(args[4]),role:args[5] as any,status:"pending",reason:"",created_at:"2026-10-26 09:00:00",reviewed_at:null});return [[],[]];
+  }
+  if(sql.startsWith("UPDATE staff_access_requests SET request_id")){
+   const r=state.applications.find(r=>r.request_id===args[3])!;Object.assign(r,{request_id:args[0],email:args[1],display_name:args[2],status:"pending",reason:"",reviewed_at:null});return [[],[]];
+  }
+  if(sql.startsWith("UPDATE staff_access_requests SET status")){
+   const r=state.applications.find(r=>r.request_id===args[3])!;Object.assign(r,{status:args[0],reason:args[1],reviewed_at:"2026-10-26 10:00:00"});return [[],[]];
+  }
   if(sql.startsWith("SELECT user_uid,merchant_id")){
    if(!state.tables)throw Object.assign(Error("fixture missing table"),{code:"ER_NO_SUCH_TABLE"});
    return [state.master?[state.master]:[],[]];
@@ -55,7 +74,7 @@ function database(){
   return {execute,beginTransaction:async()=>{events.push("BEGIN");snapshot=structuredClone(state)},
    commit:async()=>{events.push("COMMIT")},rollback:async()=>{events.push("ROLLBACK");state=snapshot},release:()=>events.push("RELEASE")};
  }} as unknown as Pool;
- return {pool,events,get state(){return state}};
+ return {pool,events,get state(){return state},set failAudit(value:boolean){failAudit=value}};
 }
 async function initialized(includeMerchant=false){const db=database();await bootstrapMaster(db.pool,owner,{password,includeMerchant},env,now);return db}
 function hasCode(code:string){return (e:unknown)=>e instanceof AccessError&&e.code===code}
@@ -234,4 +253,82 @@ test("slow Firebase email lookup times out without blocking the authorized role 
  const db=await initialized(),h=http(db,owner,undefined,()=>new Promise(()=>{}));
  const r=await h.GET(new Request("https://api.example.invalid/api/admin/access",{headers:{origin:adminOrigin,authorization:"Bearer fixture-token"}}));
  const d=await r.json();assert.equal(r.status,200);assert.equal(d.members[0].emailStatus,"unavailable");
+});
+
+const applicant:AccessIdentity={...owner,uid:"new-person",email:"new@example.invalid",claims:{...owner.claims,email:"new@example.invalid"}};
+const profile={email:"new@example.invalid",displayName:"새 신청자"};
+test("application is bound to authenticated account and shop; duplicate submission stays pending without granting a role",async()=>{
+ const db=await initialized(),first=await applyForAccess(db.pool,applicant,"merchant",profile),second=await applyForAccess(db.pool,applicant,"merchant",profile);
+ assert.equal(first.requestId,second.requestId);assert.equal(db.state.applications.length,1);assert.equal(db.state.applications[0].user_uid,applicant.uid);
+ assert.equal(db.state.members[applicant.uid+":merchant"],undefined);
+ assert.equal((await ownApplications(db.pool,{...applicant,uid:"stranger"})).requests.length,0);
+ assert.equal((await ownApplications(db.pool,applicant)).requests.length,1);
+});
+test("master accepts requested seller or admin role atomically with role audit and application result",async()=>{
+ for(const role of ["merchant","admin"] as const){const db=await initialized(),r=await applyForAccess(db.pool,applicant,role,profile);
+  await reviewApplication(db.pool,owner,{requestId:r.requestId,decision:"approved",reason:""},now);
+  assert.equal(db.state.members[applicant.uid+":"+role].active,true);assert.equal(db.state.members[applicant.uid+":"+(role==="admin"?"merchant":"admin")],undefined);
+  assert.equal(db.state.applications[0].status,"approved");assert.equal(db.state.audit.length,2);
+  await assert.rejects(reviewApplication(db.pool,owner,{requestId:r.requestId,decision:"rejected",reason:"late"},now),hasCode("APPLICATION_ALREADY_REVIEWED"));
+  assert.equal(db.state.applications[0].status,"approved");
+ }
+});
+test("rejection grants no role, returns reason to owner, and reapplication replaces its ID so stale review cannot act",async()=>{
+ const db=await initialized(),r=await applyForAccess(db.pool,applicant,"admin",profile);
+ await reviewApplication(db.pool,owner,{requestId:r.requestId,decision:"rejected",reason:"신청 정보 확인 필요"},now);
+ assert.equal(db.state.members[applicant.uid+":admin"],undefined);assert.equal((await ownApplications(db.pool,applicant)).requests[0].reason,"신청 정보 확인 필요");
+ const next=await applyForAccess(db.pool,applicant,"admin",profile);assert.notEqual(next.requestId,r.requestId);assert.equal(db.state.applications.length,1);
+ await assert.rejects(reviewApplication(db.pool,owner,{requestId:r.requestId,decision:"approved",reason:""},now),hasCode("APPLICATION_NOT_FOUND"));
+ assert.equal(db.state.applications[0].status,"pending");assert.equal(db.state.reviews.length,1,"reapplication preserves rejection history");
+});
+test("ordinary admins cannot list or review requests; stale master login cannot review",async()=>{
+ const db=await initialized(),r=await applyForAccess(db.pool,applicant,"admin",profile);db.state.members[applicant.uid+":admin"]={merchant_id:"fixture-shop",active:true};
+ await assert.rejects(pendingApplications(db.pool,applicant),hasCode("MASTER_ACCESS_REQUIRED"));
+ await assert.rejects(reviewApplication(db.pool,applicant,{requestId:r.requestId,decision:"approved",reason:""},now),hasCode("MASTER_ACCESS_REQUIRED"));
+ await assert.rejects(reviewApplication(db.pool,{...owner,claims:{...owner.claims,auth_time:now/1000-301}},{requestId:r.requestId,decision:"approved",reason:""},now),hasCode("RECENT_LOGIN_REQUIRED"));
+ assert.equal(db.state.applications[0].status,"pending");
+});
+test("active role and other-store role cannot apply; approval conflict rolls back the pending application",async()=>{
+ const db=await initialized();db.state.members[applicant.uid+":merchant"]={merchant_id:"fixture-shop",active:true};
+ await assert.rejects(applyForAccess(db.pool,applicant,"merchant",profile),hasCode("ROLE_ALREADY_ACTIVE"));
+ const r=await applyForAccess(db.pool,applicant,"admin",profile);db.state.members[applicant.uid+":admin"]={merchant_id:"different-shop",active:false};
+ await assert.rejects(reviewApplication(db.pool,owner,{requestId:r.requestId,decision:"approved",reason:""},now),hasCode("ACCOUNT_OTHER_STORE"));
+ assert.equal(db.state.applications[0].status,"pending");assert.equal(db.state.members[applicant.uid+":admin"].active,false);
+ await assert.rejects(applyForAccess(db.pool,applicant,"admin",profile),hasCode("ACCOUNT_OTHER_STORE"));
+});
+function requestHttp(db:ReturnType<typeof database>,user:AccessIdentity|null=applicant,disabled=false,anonymous=false){return createRequestHandlers({env:{ADMIN_SITE_ORIGIN:adminOrigin},pool:()=>db.pool,identity:async()=>user,account:async uid=>({uid,...profile,disabled,providerData:anonymous?[]:[{providerId:"google.com"}]})})}
+function applicationRequest(body:unknown,origin:string|null="https://api.example.invalid"){return new Request("https://api.example.invalid/api/staff/requests",{method:"POST",headers:{...(origin?{origin}:{}),"content-type":"application/json"},body:JSON.stringify(body)})}
+test("request API accepts seller same-origin or admin origin and ignores no caller-controlled identity, email or shop",async()=>{
+ const db=await initialized(),h=requestHttp(db);
+ for(const extra of [{uid:"victim"},{email:"spoof@example.invalid"},{merchantId:"other"},{role:"master"}])assert.equal((await h.POST(applicationRequest({role:"merchant",...extra}))).status,400);
+ assert.equal(db.state.applications.length,0);
+ assert.equal((await h.POST(applicationRequest({role:"merchant"}))).status,200);
+ assert.equal((await h.POST(applicationRequest({role:"admin"},adminOrigin))).status,200);
+ assert(db.state.applications.every(r=>r.user_uid===applicant.uid&&r.merchant_id==="fixture-shop"&&r.email===profile.email));
+ const r=await h.GET(new Request("https://api.example.invalid/api/staff/requests"));assert.match(r.headers.get("cache-control")!,/no-store/);assert.equal((await r.json()).requests.length,2);
+});
+test("request API blocks external or absent POST origin, signed-out, disabled and anonymous accounts and oversized JSON",async()=>{
+ const db=await initialized();
+ for(const origin of [null,"https://evil.example.invalid"])assert.equal((await requestHttp(db).POST(applicationRequest({role:"merchant"},origin))).status,403);
+ for(const [h,status] of [[requestHttp(db,null),401],[requestHttp(db,applicant,true),409],[requestHttp(db,applicant,false,true),409]] as const)assert.equal((await h.POST(applicationRequest({role:"admin"}))).status,status);
+ assert.equal((await requestHttp(db).POST(applicationRequest({role:"merchant",padding:"a".repeat(2000)}))).status,400);assert.equal(db.state.applications.length,0);
+});
+test("request preflight permits only explicit origins, GET/POST, and bearer/JSON headers",()=>{
+ const h=requestHttp(database());
+ for(const origin of [adminOrigin,"https://api.example.invalid"]){const r=h.OPTIONS(new Request("https://api.example.invalid/api/staff/requests",{method:"OPTIONS",headers:{origin,"access-control-request-method":"POST","access-control-request-headers":"authorization,content-type"}}));assert.equal(r.status,204);assert.equal(r.headers.get("access-control-allow-origin"),origin)}
+ for(const method of ["DELETE","PUT"])assert.equal(h.OPTIONS(new Request("https://api.example.invalid/api/staff/requests",{method:"OPTIONS",headers:{origin:adminOrigin,"access-control-request-method":method}})).status,403);
+});
+test("review HTTP validates master and current target account before granting pending role",async()=>{
+ const db=await initialized(),r=await applyForAccess(db.pool,applicant,"merchant",profile);
+ assert.equal((await http(db,applicant).POST(apiRequest({action:"review",requestId:r.requestId,decision:"approved"}))).status,403);
+ assert.equal((await http(db,owner,async uid=>({uid,disabled:true,providerData:[{providerId:"google.com"}]})).POST(apiRequest({action:"review",requestId:r.requestId,decision:"approved"}))).status,409);
+ assert.equal((await http(db).POST(apiRequest({action:"review",requestId:r.requestId,decision:"approved",uid:"victim"}))).status,400);
+ assert.equal((await http(db).POST(apiRequest({action:"review",requestId:r.requestId,decision:"approved"}))).status,200);
+ assert.equal(db.state.members[applicant.uid+":merchant"].active,true);
+});
+
+test("review audit failure rolls back role and application changes together",async()=>{
+ const db=await initialized(),r=await applyForAccess(db.pool,applicant,"merchant",profile);db.failAudit=true;
+ await assert.rejects(reviewApplication(db.pool,owner,{requestId:r.requestId,decision:"approved",reason:""},now),/fixture audit failure/);
+ assert.equal(db.state.applications[0].status,"pending");assert.equal(db.state.members[applicant.uid+":merchant"],undefined);assert.equal(db.state.audit.length,1);assert.equal(db.state.reviews.length,0);
 });
