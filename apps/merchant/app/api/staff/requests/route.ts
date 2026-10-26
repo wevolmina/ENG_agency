@@ -1,5 +1,5 @@
 import {adminAuth,authorizedUser} from "../../../../lib/admin";
-import {getPool} from "../../../../lib/mysql";
+import {getPool} from "../../../../lib/db";
 import {createRequestHandlers} from "../../../../lib/staff-requests-http";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";

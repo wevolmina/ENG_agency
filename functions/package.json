@@ -1,7 +1,18 @@
 {
-  "name": "@bridge/functions", "private": true, "main": "lib/index.js",
-  "engines": {"node": "22"},
-  "scripts": {"build": "tsc", "serve": "firebase emulators:start --only functions,firestore,auth"},
-  "dependencies": {"firebase-admin": "^13.0.0", "firebase-functions": "^6.0.0", "zod": "^3.24.0"},
-  "devDependencies": {"typescript": "^5.9.0", "@types/node": "^22.0.0"}
+  "name": "@bridge/functions",
+  "private": true,
+  "main": "lib/index.js",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0",
+    "@types/node": "^22.0.0"
+  }
 }

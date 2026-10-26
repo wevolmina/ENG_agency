@@ -36,9 +36,6 @@
     "auth": {
       "port": 9099
     },
-    "functions": {
-      "port": 5001
-    },
     "firestore": {
       "port": 8080
     },
@@ -49,22 +46,5 @@
       "enabled": true
     },
     "singleProjectMode": true
-  },
-  "auth": {
-    "authorizedDomains": [
-      "localhost",
-      "paybridge-mock.web.app",
-      "paybridge-mock.firebaseapp.com",
-      "paybridge-mock.vercel.app",
-      "paybridge-admin.evolvix.workers.dev"
-    ],
-    "providers": {
-      "anonymous": true,
-      "emailPassword": true,
-      "googleSignIn": {
-        "oAuthBrandDisplayName": "페이브릿지",
-        "supportEmail": "wevolmina94@gmail.com"
-      }
-    }
   }
 }

@@ -9,6 +9,7 @@ const firebaseConfig = {
 export default function StaffDashboard() {
   return (
     <Dashboard
+      customerSiteUrl={process.env.NEXT_PUBLIC_CUSTOMER_SITE_URL}
       firebaseConfig={firebaseConfig}
       adminSiteUrl={process.env.NEXT_PUBLIC_ADMIN_SITE_URL}
     />

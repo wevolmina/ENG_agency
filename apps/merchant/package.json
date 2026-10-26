@@ -15,12 +15,14 @@
     "mysql2": "^3.14.0",
     "@vercel/functions": "^2.2.0",
     "zod": "^3.24.0",
-    "@bridge/staff-ui": "*"
+    "@bridge/staff-ui": "*",
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/node": "^22.0.0",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "@types/pg": "^8.15.5"
   }
 }

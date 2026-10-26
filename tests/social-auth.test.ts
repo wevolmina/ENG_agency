@@ -6,7 +6,7 @@ import {beginSocialLogin, exchangeSocialCode, finishSocialLogin, signSocialState
 import {readSocialResult, socialErrorMessage, socialErrorCode} from "../packages/staff-ui/social-policy";
 const origin = "https://paybridge-mock.web.app", api = "https://paybridge-mock.vercel.app";
 const nonce = "b".repeat(64), secret = "test-only-state-secret-".repeat(3), now = 100000;
-const env: SocialEnv = {SOCIAL_AUTH_STATE_SECRET: secret, KAKAO_REST_API_KEY: "kakao-test-id",
+const env: SocialEnv = {SOCIAL_AUTH_API_ORIGIN:api,CUSTOMER_SITE_ORIGINS:origin+",https://paybridge-mock.firebaseapp.com",SOCIAL_AUTH_STATE_SECRET: secret, KAKAO_REST_API_KEY: "kakao-test-id",
   KAKAO_CLIENT_SECRET: "kakao-test-secret", NAVER_CLIENT_ID: "naver-test-id",
   NAVER_CLIENT_SECRET: "naver-test-secret", FIREBASE_PROJECT_ID: "test-project",
   FIREBASE_CLIENT_EMAIL: "fixture@example.invalid", FIREBASE_PRIVATE_KEY: "fixture-not-a-key",

@@ -1,4 +1,4 @@
-import type {Pool} from "mysql2/promise";
+import type {Pool} from "./db";
 import {configuredAdminOrigin} from "./admin-http";
 import {AccessError,applicationInput,applyForAccess,ownApplications,type AccessIdentity} from "./staff-access";
 type Account={uid:string;email?:string;displayName?:string;disabled:boolean;providerData:{providerId:string}[]};

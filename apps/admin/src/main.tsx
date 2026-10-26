@@ -9,10 +9,11 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 const apiOrigin =
-  import.meta.env.VITE_STAFF_API_ORIGIN || "https://paybridge-mock.vercel.app";
+  import.meta.env.VITE_STAFF_API_ORIGIN || "";
 createRoot(document.getElementById("root")!).render(
   <StaffDashboard
     admin
+    customerSiteUrl={import.meta.env.VITE_CUSTOMER_SITE_URL}
     firebaseConfig={firebaseConfig}
     apiOrigin={apiOrigin}
     merchantSiteUrl={apiOrigin + "/"}

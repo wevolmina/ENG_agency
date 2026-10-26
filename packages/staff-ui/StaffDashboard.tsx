@@ -64,6 +64,7 @@ type Props = {
   firebaseConfig: FirebaseOptions;
   apiOrigin?: string;
   adminSiteUrl?: string;
+  customerSiteUrl?: string;
   merchantSiteUrl?: string;
 };
 export default function StaffDashboard({
@@ -71,7 +72,8 @@ export default function StaffDashboard({
   firebaseConfig,
   apiOrigin = "",
   adminSiteUrl,
-  merchantSiteUrl = "https://paybridge-mock.vercel.app/",
+  customerSiteUrl = "#",
+  merchantSiteUrl = "/",
 }: Props) {
   const configured = [
     firebaseConfig.apiKey,
@@ -335,7 +337,7 @@ export default function StaffDashboard({
               <p className="eyebrow">{admin ? "ADMINISTRATOR" : "MERCHANT WORKSPACE"}</p>
               <h2>{title} 로그인</h2>
               <p className="login-lead">{admin ? "승인된 계정으로 운영 공간에 접속하세요." : "오늘의 주문과 매출을 확인하세요."}</p>
-              <SocialLogin auth={configured ? clientAuth() : null} apiOrigin={apiOrigin || "https://paybridge-mock.vercel.app"}
+              <SocialLogin auth={configured ? clientAuth() : null} apiOrigin={apiOrigin || window.location.origin}
                 disabled={busy} onBusyChange={setSocialBusy}/>
                 <p className="social-divider">또는 이메일로 로그인</p>
 
@@ -366,7 +368,7 @@ export default function StaffDashboard({
       {!configured && <p className="notice">로그인 연결 설정을 확인 중입니다.</p>}
       {error && <p className="notice" role="alert">{error}</p>}
       <p className="auth-note">승인된 계정만 이용할 수 있습니다. 실제 청구 없는 모의 서비스입니다.</p>
-      <a className="auth-back" href="https://paybridge-mock.web.app/">고객 스토어 둘러보기 <span aria-hidden="true">↗</span></a>
+      <a className="auth-back" href={customerSiteUrl}>고객 스토어 둘러보기 <span aria-hidden="true">↗</span></a>
     </div></main></div>;
   return (
     <div className={"shell " + (admin ? "theme-admin" : "theme-merchant")}>
@@ -385,7 +387,7 @@ export default function StaffDashboard({
           {(admin ? [["packages","공간·패키지"],["accounts",canManageAccounts?"계정·권한":"내 계정"],["transactions","주문 현황"],["activity","변경 이력"]] : [["overview","매출 개요"],["transactions","주문 내역"],["accounts","내 계정"]]).map(([key,label],i)=><a key={key} href={"#"+key} className={view===key?"active":undefined} aria-current={view===key?"page":undefined} onClick={e=>{e.preventDefault();navigate(key)}} aria-disabled={accessBusy}><span className="nav-number" aria-hidden="true">0{i+1}</span>{label}</a>)}
           <div className="nav-external-label">다른 공간</div>
           {(admin || adminSiteUrl) && <a href={admin ? merchantSiteUrl : adminSiteUrl}>{admin ? "판매자 센터" : "관리자 사이트"}<span aria-hidden="true">↗</span></a>}
-          <a href="https://paybridge-mock.web.app/">고객 스토어<span aria-hidden="true">↗</span></a>
+          <a href={customerSiteUrl}>고객 스토어<span aria-hidden="true">↗</span></a>
         </nav>
         <div className="sidebar-bottom">
           모의 주문 환경<p>실제 결제·배송·기기 연결 없음</p>

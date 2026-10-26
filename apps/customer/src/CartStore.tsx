@@ -7,7 +7,8 @@ import {spacePackages,isSpaceProductId,type SpaceProductId} from "./space-packag
 import "./smartspace.css";
 import "./cart.css";
 import "./storefront.css";
-const API="https://paybridge-mock.vercel.app/api/",DRAFT="smartspace-cart:v1";
+const API_ORIGIN=(import.meta.env.VITE_STAFF_API_ORIGIN||"").replace(/\/$/,"");
+const API=API_ORIGIN+"/api/",DRAFT="smartspace-cart:v1";
 type Package={id:string;name:string;price:number;active:boolean;spaceName:string};
 type Line={productId:string;productName:string;unitPrice:number;quantity:number;lineTotal:number};
 type Receipt={productId:string;paymentId:string;orderId:string;productName:string;quantity:number;amount:number;status:string;createdAt:string;items?:Line[]};
@@ -76,6 +77,7 @@ export default function CartStore(){
    localStorage.setItem(key,JSON.stringify(request));setUncertain(true);
    const r=await fetch(API+("items" in request?"cart-checkout":"checkout"),{method:"POST",headers:{Authorization:"Bearer "+await user.getIdToken(),"Content-Type":"application/json"},body:JSON.stringify(request),signal:AbortSignal.timeout(30000),cache:"no-store"});
    if(auth.currentUser?.uid!==paymentUid)return;
+   if(r.status===202){setError("주문 요청을 저장했습니다. 판매자 내역 반영을 처리 중입니다. 같은 주문 결과 다시 확인을 눌러 복구할 수 있습니다.");return}
    if(!r.ok){const failure=await r.json().catch(()=>({}));if(["PACKAGE_UNAVAILABLE","PACKAGE_CHANGED"].includes(failure.error)){localStorage.removeItem(key);setUncertain(false);setConsent(false);setPackages([]);setError("구성 중 구매할 수 없거나 가격이 바뀐 패키지가 있습니다. 새로고침하여 현재 구성을 다시 확인해 주세요.");return}throw Error("CHECKOUT_UNAVAILABLE")}
    const result:Receipt=await r.json();if(result.status!=="MOCK_APPROVED")throw Error("UNEXPECTED_STATUS");
    if(user.isAnonymous){localStorage.setItem("smartspace-guest-history:"+user.uid,"true");setGuestHistory(true)}
@@ -89,7 +91,7 @@ export default function CartStore(){
      <p>{user&&!user.isAnonymous?(user.displayName||user.email||"간편로그인 계정")+"으로 로그인했습니다.":"로그인 없이 공간을 체험할 수 있습니다. 비회원 모의 주문도 기존처럼 이용할 수 있습니다."}</p></div>
      {user&&!user.isAnonymous&&<button type="button" className="account-signout" disabled={locked} onClick={()=>void logout()}>로그아웃</button>}
     </div>
-    {(!user||user.isAnonymous)&&<SocialLogin auth={authReady?auth:null} allowLogin={allowSocialLogin} apiOrigin="https://paybridge-mock.vercel.app" disabled={busy||uncertain} blockCustomForGuest={!!user?.isAnonymous&&guestHistory} onBusyChange={setSocialBusy}/>}
+    {(!user||user.isAnonymous)&&<SocialLogin auth={authReady?auth:null} allowLogin={allowSocialLogin} apiOrigin={API_ORIGIN} disabled={busy||uncertain} blockCustomForGuest={!!user?.isAnonymous&&guestHistory} onBusyChange={setSocialBusy}/>}
     {accountError&&<p className="account-error" role="alert">{accountError}</p>}
     {uncertain&&<p className="social-help">확인 중인 주문 결과를 먼저 확인한 뒤 계정을 바꿀 수 있습니다.</p>}
    </div></details>;

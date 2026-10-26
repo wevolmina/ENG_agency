@@ -1,74 +1,43 @@
-name: Deploy customer to Firebase
-
+name: Deploy ENG agency firebase
 on:
+  workflow_dispatch:
   push:
     branches: [main]
-    paths:
-      - 'apps/customer/**'
-      - 'packages/staff-ui/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'firebase.json'
-      - '.firebaserc'
-      - 'scripts/check-static-deploy-env.mjs'
-      - '.github/workflows/deploy-firebase.yml'
-  workflow_dispatch:
-
 permissions:
   contents: read
-
 concurrency:
-  group: paybridge-firebase-production
+  group: eng-agency-firebase
   cancel-in-progress: false
-
 jobs:
   deploy:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && vars.DEPLOY_ENG_AGENCY == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
       VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY }}
       VITE_FIREBASE_AUTH_DOMAIN: ${{ vars.VITE_FIREBASE_AUTH_DOMAIN }}
-      VITE_FIREBASE_PROJECT_ID: paybridge-mock
+      VITE_FIREBASE_PROJECT_ID: ${{ vars.VITE_FIREBASE_PROJECT_ID }}
       VITE_FIREBASE_APP_ID: ${{ vars.VITE_FIREBASE_APP_ID }}
+      VITE_STAFF_API_ORIGIN: ${{ vars.VITE_STAFF_API_ORIGIN }}
+      VITE_CUSTOMER_SITE_URL: ${{ vars.VITE_CUSTOMER_SITE_URL }}
       VITE_USE_EMULATORS: 'false'
+      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
           cache: npm
-      - name: Check deployment configuration without logging values
-        run: node scripts/check-static-deploy-env.mjs firebase
-        env:
-          FIREBASE_SERVICE_ACCOUNT_PAYBRIDGE_MOCK: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_PAYBRIDGE_MOCK }}
+      - run: node scripts/check-static-deploy-env.mjs firebase
       - run: npm ci
-      - run: node --import tsx --test tests/*.test.ts
+      - run: npm test
       - run: npm run build --workspace @bridge/customer
-      - name: Skip outdated target files, allow newer documentation-only commits
-        id: revision
+      - name: Deploy Hosting and Firestore only
         shell: bash
         run: |
-          git fetch --no-tags --depth=1 origin main
-          git diff --name-only "$GITHUB_SHA" FETCH_HEAD -- apps/customer packages/staff-ui package.json package-lock.json firebase.json .firebaserc scripts/check-static-deploy-env.mjs .github/workflows/deploy-firebase.yml > "$RUNNER_TEMP/static-release-changes.txt"
-          if [ -s "$RUNNER_TEMP/static-release-changes.txt" ]; then
-            echo 'current=false' >> "$GITHUB_OUTPUT"
-            echo 'Newer target files exist on main; skipped this outdated deployment.' >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo 'current=true' >> "$GITHUB_OUTPUT"
-          fi
-      - name: Deploy Hosting live only
-        if: steps.revision.outputs.current == 'true'
-        uses: FirebaseExtended/action-hosting-deploy@500ac625ca2dd40cbd15f7659af953801858032a # v0
-        with:
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_PAYBRIDGE_MOCK }}
-          projectId: paybridge-mock
-          channelId: live
-          entryPoint: .
-          firebaseToolsVersion: '15.34.1'
-          disableComment: 'true'
-      - name: Record deployment
-        if: steps.revision.outputs.current == 'true'
-        run: echo 'Customer Hosting deployed from commit ${{ github.sha }} to https://paybridge-mock.web.app' >> "$GITHUB_STEP_SUMMARY"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase-service-account.json"
+          node -e 'require("node:fs").writeFileSync(process.env.GOOGLE_APPLICATION_CREDENTIALS,process.env.FIREBASE_SERVICE_ACCOUNT,{mode:0o600})'
+          trap 'rm -f "$GOOGLE_APPLICATION_CREDENTIALS"' EXIT
+          npx --yes firebase-tools@15.34.1 deploy --only hosting,firestore --project "$VITE_FIREBASE_PROJECT_ID" --non-interactive

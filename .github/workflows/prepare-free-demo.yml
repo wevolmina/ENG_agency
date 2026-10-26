@@ -1,0 +1,51 @@
+name: Validate free demo migration
+on:
+  push:
+    branches: ['feat/free-demo-postgres']
+permissions:
+  contents: write
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: fixture-only
+          POSTGRES_DB: eng_agency_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:fixture-only@localhost:5432/eng_agency_test
+      RUN_POSTGRES_TESTS: 'true'
+      VITE_FIREBASE_API_KEY: ci-public-placeholder
+      VITE_FIREBASE_AUTH_DOMAIN: eng-agency-test.firebaseapp.com
+      VITE_FIREBASE_PROJECT_ID: eng-agency-test
+      VITE_FIREBASE_APP_ID: ci-public-placeholder
+      VITE_STAFF_API_ORIGIN: https://eng-agency-test.vercel.app
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: feat/free-demo-postgres
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm install --package-lock-only --ignore-scripts
+      - run: npm ci
+      - name: Save updated dependency lock
+        run: |
+          git config user.name wevolmina
+          git config user.email 346683009+wevolmina@users.noreply.github.com
+          git add package-lock.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: lock PostgreSQL dependencies"
+            git push origin HEAD:feat/free-demo-postgres
+          fi
+      - run: npm test
+      - run: npm run db:migrate
+      - run: npm run db:migrate
+      - run: npm run test:postgres
+      - run: npm run build

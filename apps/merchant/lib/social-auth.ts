@@ -15,7 +15,7 @@ const stateSchema = z.object({
 }).strict();
 type SocialState = z.infer<typeof stateSchema>;
 const TTL = 600;
-const defaults = ["https://paybridge-mock.web.app", "https://paybridge-mock.firebaseapp.com"];
+
 
 function secureOrigin(value: string | undefined, env: SocialEnv) {
   if (!value) return null;
@@ -28,12 +28,12 @@ function secureOrigin(value: string | undefined, env: SocialEnv) {
   } catch { return null; }
 }
 export function socialOrigins(env: SocialEnv) {
-  return new Set([...defaults, apiOrigin(env), secureOrigin(env.ADMIN_SITE_ORIGIN, env),
+  return new Set([...(env.CUSTOMER_SITE_ORIGINS||"").split(",").map(value=>secureOrigin(value.trim(),env)), apiOrigin(env), secureOrigin(env.ADMIN_SITE_ORIGIN, env),
     ...(env.NODE_ENV === "development" ? [secureOrigin(env.SOCIAL_CUSTOMER_DEV_ORIGIN, env)] : []),
   ].filter((s): s is string => !!s));
 }
 function apiOrigin(env: SocialEnv) {
-  return secureOrigin(env.SOCIAL_AUTH_API_ORIGIN || "https://paybridge-mock.vercel.app", env);
+  return secureOrigin(env.SOCIAL_AUTH_API_ORIGIN, env);
 }
 function stateSecret(env: SocialEnv) {
   return env.SOCIAL_AUTH_STATE_SECRET && env.SOCIAL_AUTH_STATE_SECRET.length >= 32

@@ -20,10 +20,10 @@ jobs:
     env:
       # Public fixtures for compilation only. This job never deploys or signs in.
       VITE_FIREBASE_API_KEY: ci-public-placeholder
-      VITE_FIREBASE_AUTH_DOMAIN: paybridge-mock.firebaseapp.com
-      VITE_FIREBASE_PROJECT_ID: paybridge-mock
+      VITE_FIREBASE_AUTH_DOMAIN: eng-agency-test.firebaseapp.com
+      VITE_FIREBASE_PROJECT_ID: eng-agency-test
       VITE_FIREBASE_APP_ID: ci-public-placeholder
-      VITE_STAFF_API_ORIGIN: https://paybridge-mock.vercel.app
+      VITE_STAFF_API_ORIGIN: https://eng-agency-test.vercel.app
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
