@@ -1,3 +1,5 @@
+> 권한 신청: [관리자·판매자 신청과 마스터 수락·거절](docs/2026-10-26/paybridge-access-requests/README.md). 로그인 후 내 계정에서 신청합니다. UID를 따로 전달할 필요가 없습니다.
+
 > 관리자 계정 승인: [최초 마스터 등록·권한 승인 가이드](docs/2026-10-25/paybridge-master-access/README.md). 지정된 구글 계정과 최초 설정 비밀번호로 등록하고, 이후 화면에서 권한을 관리합니다.
 
 > 고객·판매자·관리자 구글/카카오/네이버 간편로그인: [공통 연결 설정](docs/2026-10-25/paybridge-social-login/README.md) · [판매자 적용과 검증 범위](docs/2026-10-25/paybridge-seller-social-login/README.md). 운영 서버의 연결 준비가 끝난 공급자만 사용할 수 있습니다.
