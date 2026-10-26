@@ -75,6 +75,8 @@ export default function StaffDashboard({
   customerSiteUrl = "#",
   merchantSiteUrl = "/",
 }: Props) {
+  const [browserOrigin,setBrowserOrigin]=useState("");
+  useEffect(()=>setBrowserOrigin(window.location.origin),[]);
   const configured = [
     firebaseConfig.apiKey,
     firebaseConfig.authDomain,
@@ -337,7 +339,7 @@ export default function StaffDashboard({
               <p className="eyebrow">{admin ? "ADMINISTRATOR" : "MERCHANT WORKSPACE"}</p>
               <h2>{title} 로그인</h2>
               <p className="login-lead">{admin ? "승인된 계정으로 운영 공간에 접속하세요." : "오늘의 주문과 매출을 확인하세요."}</p>
-              <SocialLogin auth={configured ? clientAuth() : null} apiOrigin={apiOrigin || window.location.origin}
+              <SocialLogin auth={configured ? clientAuth() : null} apiOrigin={apiOrigin || browserOrigin}
                 disabled={busy} onBusyChange={setSocialBusy}/>
                 <p className="social-divider">또는 이메일로 로그인</p>
 
