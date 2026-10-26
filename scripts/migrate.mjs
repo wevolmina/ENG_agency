@@ -1,8 +1,22 @@
+import pg from "pg";
 import {readFile} from "node:fs/promises";
-import mysql from "mysql2/promise";
-const required=["MYSQL_HOST","MYSQL_USER","MYSQL_PASSWORD","MYSQL_DATABASE"];
-if(required.some(key=>!process.env[key]))throw new Error("MySQL 환경 변수를 먼저 설정하세요.");
-if(process.env.MYSQL_TLS==="false" && !["localhost","127.0.0.1"].includes(process.env.MYSQL_HOST))throw new Error("외부 MySQL은 TLS가 필요합니다.");
-const connection=await mysql.createConnection({host:process.env.MYSQL_HOST,port:Number(process.env.MYSQL_PORT||3306),user:process.env.MYSQL_USER,password:process.env.MYSQL_PASSWORD,database:process.env.MYSQL_DATABASE,
-  ssl:process.env.MYSQL_TLS==="false"?undefined:{rejectUnauthorized:true,ca:process.env.MYSQL_CA_BASE64?Buffer.from(process.env.MYSQL_CA_BASE64,"base64").toString():undefined}});
-try{await connection.query(await readFile(new URL("../database/001-payments.sql",import.meta.url),"utf8"));for(const file of ["002-orders.sql","005-staff-access-requests.sql"])for(const sql of (await readFile(new URL("../database/"+file,import.meta.url),"utf8")).split(/;\s*(?:\n|$)/).filter(x=>x.trim()))await connection.query(sql);console.log("주문·결제·권한 신청 테이블 준비 완료");}finally{await connection.end();}
+if(!process.env.DATABASE_URL)throw Error("DATABASE_URL is required");
+const url=new URL(process.env.DATABASE_URL);
+const local=["localhost","127.0.0.1","::1"].includes(url.hostname);
+if(!local&&url.searchParams.get("sslmode")==="disable")throw Error("Remote TLS required");
+for(const key of ["sslmode","sslcert","sslkey","sslrootcert"])url.searchParams.delete(key);
+const c=new pg.Client({connectionString:url.toString(),ssl:local?undefined:{rejectUnauthorized:true}});
+await c.connect();
+try{
+ await c.query("BEGIN");
+ await c.query("SELECT pg_advisory_xact_lock(70621026)");
+ await c.query("CREATE TABLE IF NOT EXISTS app_migrations(version TEXT PRIMARY KEY,applied_at TIMESTAMPTZ NOT NULL DEFAULT now())");
+ const found=await c.query("SELECT version FROM app_migrations WHERE version=$1",["postgres-initial-v1"]);
+ if(!found.rowCount){
+  const existing=await c.query("SELECT to_regclass('public.orders') AS orders,to_regclass('public.packages') AS packages");
+  if(existing.rows[0].orders||existing.rows[0].packages)throw Error("Existing tables found; inspect database instead of overwriting");
+  await c.query(await readFile(new URL("../database/postgres/001-initial.sql",import.meta.url),"utf8"));
+  await c.query("INSERT INTO app_migrations(version) VALUES($1)",["postgres-initial-v1"]);
+ }
+ await c.query("COMMIT");console.log("PostgreSQL schema ready; existing data was not replaced.");
+}catch(e){await c.query("ROLLBACK");throw e}finally{await c.end()}

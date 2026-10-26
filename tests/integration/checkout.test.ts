@@ -39,7 +39,7 @@ test("checkout transaction: parallel retry, conflict, receipt isolation, rollbac
   assert.equal(await existingOrder(pool,uid,failed),null);
  }finally{
   await pool.execute("DELETE i FROM order_items i JOIN orders o ON i.order_id=o.order_id WHERE o.customer_id=?",[uid]);
-  await pool.execute("DELETE FROM payments WHERE BINARY customer_id=BINARY ?",[uid]);
+  await pool.execute("DELETE FROM payments WHERE customer_id=?",[uid]);
   await pool.execute("DELETE FROM orders WHERE customer_id=?",[uid]);await pool.end();
  }
 });

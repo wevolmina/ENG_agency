@@ -1,6 +1,6 @@
 import {createHash} from "node:crypto";
 import {z} from "zod";
-import type {Pool,RowDataPacket} from "mysql2/promise";
+import type {Pool,RowDataPacket} from "./db";
 import {catalog} from "../../../functions/src/domain";
 import {storedReceipt,type StoredReceipt} from "./checkout";
 import {payloadHash} from "./payments";
@@ -23,7 +23,7 @@ export async function confirmCart(pool:Pool,uid:string,input:CartInput){
  const p=buildCart(uid,input),hash=cartHash(input),time=p.createdAt.slice(0,23).replace("T"," "),c=await pool.getConnection();
  try{
   await c.beginTransaction();
-  await c.execute("INSERT INTO orders (order_id,customer_id,request_id,request_hash,merchant_id,amount,currency,status,created_at) VALUES (?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE order_id=order_id",[p.orderId,uid,input.requestId,hash,p.merchantId,p.amount,p.currency,p.status,time]);
+  await c.execute("INSERT INTO orders (order_id,customer_id,request_id,request_hash,merchant_id,amount,currency,status,created_at) VALUES (?,?,?,?,?,?,?,?,?) ON CONFLICT DO NOTHING",[p.orderId,uid,input.requestId,hash,p.merchantId,p.amount,p.currency,p.status,time]);
   const [orders]=await c.execute<RowDataPacket[]>("SELECT request_hash FROM orders WHERE order_id=? FOR UPDATE",[p.orderId]);if(orders[0]?.request_hash!==hash)throw Error("REQUEST_CONFLICT");
   const [old]=await c.execute<RowDataPacket[]>("SELECT * FROM payments WHERE payment_id=?",[p.paymentId]);if(old.length){const prior=await storedReceipt(c,old[0]);await c.commit();return prior}
   for(const [index,item]of p.items.entries()){

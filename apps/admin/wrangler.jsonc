@@ -1,6 +1,6 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
-  "name": "paybridge-admin",
+  "name": "eng-agency-admin",
   "compatibility_date": "2026-10-25",
   "assets": {
     "directory": "./dist",

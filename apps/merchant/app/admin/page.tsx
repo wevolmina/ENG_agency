@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { configuredAdminOrigin } from "../../lib/admin-http";
 export default function AdminPage() {
   const origin = configuredAdminOrigin(process.env.NEXT_PUBLIC_ADMIN_SITE_URL);
-  if (origin && origin !== "https://paybridge-mock.vercel.app")
+  if (origin && origin !== configuredAdminOrigin(process.env.SOCIAL_AUTH_API_ORIGIN))
     redirect(origin + "/");
   return (
     <main>

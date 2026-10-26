@@ -1,8 +1,8 @@
 import {adminCors,adminOptions,adminOriginAllowed} from "../../../../lib/admin-http";
-import type {RowDataPacket} from "mysql2/promise";
+import type {RowDataPacket} from "../../../../lib/db";
 import {authorizedStaff} from "../../../../lib/staff";
 import {spaceCatalog} from "../../../../lib/catalog";
-import {getPool} from "../../../../lib/mysql";
+import {getPool} from "../../../../lib/db";
 import {merchantPayments} from "../../../../lib/payments";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";

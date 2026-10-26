@@ -1,7 +1,7 @@
 import {adminCors,adminOptions,adminOriginAllowed} from "../../../../lib/admin-http";
 import {authorizedStaff} from "../../../../lib/staff";
 import {setPackageActive} from "../../../../lib/catalog";
-import {getPool} from "../../../../lib/mysql";
+import {getPool} from "../../../../lib/db";
 import {z} from "zod";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";

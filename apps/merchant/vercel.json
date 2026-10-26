@@ -1,1 +1,17 @@
-{"framework":"nextjs","regions":["icn1"],"installCommand":"npm install --prefix ../..","buildCommand":"npm run build --workspace @bridge/merchant --prefix ../..","git":{"deploymentEnabled":true}}
+{
+  "framework": "nextjs",
+  "regions": [
+    "icn1"
+  ],
+  "installCommand": "npm install --prefix ../..",
+  "buildCommand": "npm run build --workspace @bridge/merchant --prefix ../..",
+  "git": {
+    "deploymentEnabled": true
+  },
+  "crons": [
+    {
+      "path": "/api/cron/reconcile",
+      "schedule": "0 18 * * *"
+    }
+  ]
+}

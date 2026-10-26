@@ -21,7 +21,7 @@ function database(){
   if(sql.startsWith("INSERT INTO staff_access_request_reviews")){if(failAudit)throw Error("fixture audit failure");state.reviews.push(args);return [[],[]];}
   if(sql.startsWith("SELECT request_id,")){
    let rows=state.applications;
-   if(sql.includes("WHERE BINARY user_uid"))rows=rows.filter(r=>r.user_uid===args[0]&&r.merchant_id===args[1]&&(!sql.includes("AND role=?")||r.role===args[2]));
+   if(sql.includes("WHERE user_uid"))rows=rows.filter(r=>r.user_uid===args[0]&&r.merchant_id===args[1]&&(!sql.includes("AND role=?")||r.role===args[2]));
    else if(sql.includes("WHERE request_id=?"))rows=rows.filter(r=>r.request_id===args[0]&&r.merchant_id===args[1]);
    else rows=rows.filter(r=>r.merchant_id===args[0]&&r.status==="pending");
    return [structuredClone(rows.slice(0,101)),[]];
@@ -36,7 +36,7 @@ function database(){
    const r=state.applications.find(r=>r.request_id===args[3])!;Object.assign(r,{status:args[0],reason:args[1],reviewed_at:"2026-10-26 10:00:00"});return [[],[]];
   }
   if(sql.startsWith("SELECT user_uid,merchant_id")){
-   if(!state.tables)throw Object.assign(Error("fixture missing table"),{code:"ER_NO_SUCH_TABLE"});
+   if(!state.tables)throw Object.assign(Error("fixture missing table"),{code:"42P01"});
    return [state.master?[state.master]:[],[]];
   }
   if(sql.startsWith("INSERT INTO staff_master_setup")){state.master??={user_uid:null,merchant_id:null,failed_attempts:0,locked_until_ms:0};return [[],[]]}

@@ -17,11 +17,12 @@
     "db:migrate": "node scripts/migrate.mjs",
     "merchant:grant": "node scripts/grant-merchant.mjs",
     "check:deploy": "node scripts/check-deploy.mjs",
-    "deploy:firebase": "npx firebase-tools deploy --only hosting,firestore,auth",
+    "deploy:firebase": "npx firebase-tools deploy --only hosting,firestore",
     "deploy:vercel": "npx vercel --prod",
     "build:admin": "npm run build --workspace @bridge/admin",
     "dev:admin": "npm run dev --workspace @bridge/admin",
-    "deploy:admin": "npm run deploy --workspace @bridge/admin"
+    "deploy:admin": "npm run deploy --workspace @bridge/admin",
+    "test:postgres": "tsx --test tests/postgres/*.test.ts"
   },
   "devDependencies": {
     "tsx": "^4.20.0",

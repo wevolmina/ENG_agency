@@ -1,3 +1,5 @@
+> ENG_agency 새 무료 시연 구성: [Firebase Spark + Vercel + Neon PostgreSQL 배포 안내](docs/FREE_DEMO_DEPLOYMENT.md). 아래 기존 Paybridge 배포 주소·MySQL 문서는 과거 기록입니다.
+
 > 권한 신청: [관리자·판매자 신청과 마스터 수락·거절](docs/2026-10-26/paybridge-access-requests/README.md). 로그인 후 내 계정에서 신청합니다. UID를 따로 전달할 필요가 없습니다.
 
 > 관리자 계정 승인: [최초 마스터 등록·권한 승인 가이드](docs/2026-10-25/paybridge-master-access/README.md). 지정된 구글 계정과 최초 설정 비밀번호로 등록하고, 이후 화면에서 권한을 관리합니다.

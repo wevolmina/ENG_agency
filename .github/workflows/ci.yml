@@ -1,37 +1,51 @@
-name: Paybridge checks
-
+name: ENG agency checks
 on:
   pull_request:
     branches: [main]
   push:
     branches: [main]
-
 permissions:
   contents: read
-
-concurrency:
-  group: paybridge-checks-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  checks:
+  validate:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: fixture-only
+          POSTGRES_DB: eng_agency_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
     env:
-      # Public fixtures for compilation only. This job never deploys or signs in.
+      DATABASE_URL: postgresql://postgres:fixture-only@localhost:5432/eng_agency_test
+      RUN_POSTGRES_TESTS: 'true'
       VITE_FIREBASE_API_KEY: ci-public-placeholder
-      VITE_FIREBASE_AUTH_DOMAIN: paybridge-mock.firebaseapp.com
-      VITE_FIREBASE_PROJECT_ID: paybridge-mock
+      VITE_FIREBASE_AUTH_DOMAIN: eng-agency-test.firebaseapp.com
+      VITE_FIREBASE_PROJECT_ID: eng-agency-test
       VITE_FIREBASE_APP_ID: ci-public-placeholder
-      VITE_STAFF_API_ORIGIN: https://paybridge-mock.vercel.app
+      VITE_STAFF_API_ORIGIN: https://eng-agency-test.vercel.app
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - run: node --import tsx --test tests/*.test.ts
+      - run: npm test
+      - run: npm run db:migrate
+      - run: npm run db:migrate
+      - run: npm run test:postgres
       - run: npm run build
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Verify server-only Firestore intake
+        run: npx --yes firebase-tools@15.34.1 emulators:exec --only firestore --project demo-eng-agency "node --import tsx --test tests/firestore/*.test.ts"
+        env:
+          FIREBASE_PROJECT_ID: demo-eng-agency
