@@ -1,0 +1,43 @@
+name: Build ENG agency admin demo artifact
+on:
+  push:
+    branches: [ops/eng-agency-demo-artifact]
+    paths: [.github/workflows/build-demo-admin-artifact.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: eng-agency-demo-admin-artifact
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY }}
+      VITE_FIREBASE_AUTH_DOMAIN: ${{ vars.VITE_FIREBASE_AUTH_DOMAIN }}
+      VITE_FIREBASE_PROJECT_ID: ${{ vars.VITE_FIREBASE_PROJECT_ID }}
+      VITE_FIREBASE_APP_ID: ${{ vars.VITE_FIREBASE_APP_ID }}
+      VITE_STAFF_API_ORIGIN: ${{ vars.VITE_STAFF_API_ORIGIN }}
+      VITE_CUSTOMER_SITE_URL: ${{ vars.VITE_CUSTOMER_SITE_URL }}
+      VITE_USE_EMULATORS: 'false'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: a6863c4dd27e0ac6b5af4a81948bd8d8980cda2f
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Verify isolated demo target
+        run: |
+          node --input-type=module -e 'import assert from "node:assert/strict"; assert.equal(process.env.VITE_FIREBASE_PROJECT_ID,"eng-agency-demo"); assert.equal(process.env.VITE_STAFF_API_ORIGIN,"https://eng-agency-merchant.vercel.app"); assert.equal(process.env.VITE_CUSTOMER_SITE_URL,"https://eng-agency-demo.web.app");'
+      - run: npm ci
+      - run: npm run build --workspace @bridge/admin
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: eng-agency-admin-a6863c4
+          path: apps/admin/dist
+          if-no-files-found: error
+          retention-days: 3
